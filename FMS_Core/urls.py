@@ -22,4 +22,9 @@ urlpatterns = [
 
     # --- AJOUT : Gestion des Utilisateurs ---
     path('utilisateurs/', include('utilisateurs.urls')),
+    # --- AJOUT : Gestion de la Maintenance ---
+    path('', include('maintenance.urls')), # Le chemin est vide pour les URLs 'entretiens/'
+
+    # --- AJOUT : Gestion des Utilisateurs --
+    path('utilisateurs/', include('utilisateurs.urls')),
 ]

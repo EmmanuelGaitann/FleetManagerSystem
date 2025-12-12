@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Supprimer l'Entretien{% endblock %}
+{% block page_title %}Supprimer l'Entretien{% endblock %}
+
+{% block content %}
+<div class="alert alert-danger">
+    Êtes-vous sûr de vouloir supprimer l'entretien du <strong>{{ entretien.date_entretien|date:"d/m/Y" }}</strong> pour le véhicule <strong>{{ entretien.vehicule.matricule }}</strong> ?
+    Cette action est irréversible et supprimera toutes les dépenses associées.
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer la Suppression</button>
+    <a href="{% url 'entretien_list' %}" class="btn">Annuler</a>
+</form>
+{% endblock %}

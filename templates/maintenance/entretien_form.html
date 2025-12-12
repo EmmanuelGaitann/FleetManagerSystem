@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form method="post" id="entretien-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="card shadow-sm p-4 rounded-3 mb-4">
+                    <h5><i class="fas fa-tools me-2"></i> Détails de l'Entretien</h5>
+                    <hr>
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="col-md-6">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<small class="text-danger">{{ field.errors }}</small>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm p-4 rounded-3 mb-4">
+                    <h5><i class="fas fa-list-ol me-2"></i> Lignes de Dépense (Pièces & Main d'œuvre)</h5>
+                    <hr>
+
+                    {{ formset.management_form }}
+
+                    {% if formset.non_form_errors %}
+                    <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+                    {% endif %}
+
+                    <div id="formset-container">
+                        {% for detail_form in formset %}
+                        <div class="formset-row row g-3 mb-3 border p-3 rounded-3" id="formset-row-{{ forloop.counter0 }}">
+                            {% if detail_form.instance.pk %}{{ detail_form.id }}{% endif %}
+
+                            {% for field in detail_form.visible_fields %}
+                            <div class="col-md-4">
+                                <label for="{{ field.id_for_label }}" class="form-label small text-muted">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}<small class="text-danger">{{ field.errors }}</small>{% endif %}
+                            </div>
+                            {% endfor %}
+
+                            {% if detail_form.instance.pk %}
+                            <div class="col-md-1 d-flex align-items-end">
+                                <label for="{{ detail_form.DELETE.id_for_label }}" class="form-label me-2 mb-0 small text-muted">Supprimer</label>
+                                {{ detail_form.DELETE }}
+                            </div>
+                            {% else %}
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-form-row"><i class="fas fa-times"></i></button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-secondary mt-3" id="add-form-row"><i class="fas fa-plus-circle me-2"></i>Ajouter une Ligne</button>
+
+                    <div id="empty-form" style="display: none;">
+                        <div class="formset-row row g-3 mb-3 border p-3 rounded-3">
+                            {% for field in formset.empty_form.visible_fields %}
+                            <div class="col-md-4">
+                                <label for="{{ field.id_for_label }}" class="form-label small text-muted">{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                            {% endfor %}
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-form-row"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="{% url 'entretien_list' %}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-success">{{ action }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addButton = document.getElementById('add-form-row');
+        const container = document.getElementById('formset-container');
+        const emptyFormTemplate = document.getElementById('empty-form');
+        const totalForms = document.querySelector('#id_{{ formset.prefix }}-TOTAL_FORMS');
+        let formCount = totalForms.value;
+
+        // Fonction pour mettre à jour les index dans les champs
+        function updateElementIndex(el, prefix, index) {
+            const idRegex = new RegExp(`(${prefix}-\\d+|${prefix}-__prefix__)`);
+            const nameRegex = new RegExp(`(${prefix}-\\d+|${prefix}-__prefix__)`);
+
+            if (el.getAttribute('for')) {
+                el.setAttribute('for', el.getAttribute('for').replace(idRegex, `${prefix}-${index}`));
+            }
+            if (el.id) {
+                el.id = el.id.replace(idRegex, `${prefix}-${index}`);
+            }
+            if (el.name) {
+                el.name = el.name.replace(nameRegex, `${prefix}-${index}`);
+            }
+        }
+
+        // 1. Ajouter une nouvelle ligne
+        addButton.addEventListener('click', function() {
+            // Cloner le formulaire vide
+            const newForm = emptyFormTemplate.cloneNode(true);
+            newForm.id = `formset-row-${formCount}`;
+            newForm.style.display = 'block'; // Rendre visible
+
+            // Mettre à jour les index
+            Array.from(newForm.querySelectorAll('*')).forEach(element => {
+                updateElementIndex(element, '{{ formset.prefix }}', formCount);
+            });
+
+            // Ajouter le nouveau formulaire au conteneur
+            container.appendChild(newForm);
+
+            // Mettre à jour le TOTAL_FORMS
+            formCount++;
+            totalForms.value = formCount;
+        });
+
+        // 2. Supprimer une ligne
+        container.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-form-row') || e.target.closest('.remove-form-row')) {
+                e.preventDefault();
+                let row = e.target.closest('.formset-row');
+
+                // Si le formulaire a un ID (existant en BDD), on coche le champ DELETE
+                const deleteInput = row.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                    // Cache la ligne au lieu de la supprimer pour que le Formset puisse la traiter
+                    row.style.display = 'none';
+                } else {
+                    // Si c'est un formulaire nouvellement ajouté, on le supprime
+                    row.remove();
+
+                    // On recalcule le formCount pour renuméroter les lignes restantes
+                    formCount--;
+                    totalForms.value = formCount;
+
+                    // Re-numéroter toutes les lignes pour éviter les sauts d'index
+                    Array.from(container.querySelectorAll('.formset-row:not([style*="display: none"])')).forEach((row, index) => {
+                        Array.from(row.querySelectorAll('*')).forEach(element => {
+                            updateElementIndex(element, '{{ formset.prefix }}', index);
+                        });
+                    });
+                }
+            }
+        });
+
+        // Gérer la suppression des lignes existantes (via le checkbox DELETE de Django)
+        // Les lignes existantes sont cachées si le checkbox DELETE est coché
+        container.addEventListener('change', function(e) {
+            if (e.target.name.endsWith('-DELETE')) {
+                let row = e.target.closest('.formset-row');
+                if (e.target.checked) {
+                    row.style.display = 'none';
+                } else {
+                    row.style.display = 'block';
+                }
+            }
+        });
+
+    });
+</script>
+{% endblock %}
