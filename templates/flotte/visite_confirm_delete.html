@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Confirmer la Suppression de la Visite Technique{% endblock %}
+
+{% block content %}
+<div class="alert alert-danger">
+    <h4 class="alert-heading">⚠️ Confirmation de Suppression</h4>
+    <p>Êtes-vous *certain* de vouloir supprimer l'enregistrement de Visite Technique suivant ?</p>
+    <ul>
+        <li><strong>Véhicule :</strong> {{ visite.vehicule.immatriculation }} ({{ visite.vehicule.marque }} {{ visite.vehicule.modele }})</li>
+        <li><strong>Prochaine Visite :</strong> {{ visite.prochaine_visite|date:"d M Y" }}</li>
+    </ul>
+    <p>Cette action est irréversible et supprimera l'historique de cette visite.</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger btn-lg">Confirmer la Suppression</button>
+    <a href="{% url 'visite_list' %}" class="btn btn-secondary btn-lg">Annuler</a>
+</form>
+{% endblock %}

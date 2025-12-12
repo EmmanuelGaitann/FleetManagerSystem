@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Confirmer la Suppression de l'Assurance{% endblock %}
+
+{% block content %}
+<div class="alert alert-danger">
+    <h4 class="alert-heading">⚠️ Confirmation de Suppression</h4>
+    <p>Êtes-vous *certain* de vouloir supprimer l'enregistrement d'assurance suivant ?</p>
+    <ul>
+        <li><strong>Véhicule :</strong> {{ assurance.vehicule.immatriculation }} ({{ assurance.vehicule.marque }} {{ assurance.vehicule.modele }})</li>
+        <li><strong>Expiration :</strong> {{ assurance.expiration_assurance|date:"d M Y" }}</li>
+    </ul>
+    <p>Cette action est irréversible et supprimera l'historique de cette assurance.</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger btn-lg">Confirmer la Suppression</button>
+    <a href="{% url 'assurance_list' %}" class="btn btn-secondary btn-lg">Annuler</a>
+</form>
+{% endblock %}

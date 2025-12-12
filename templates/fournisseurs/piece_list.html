@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Catalogue Pièces{% endblock %}
+{% block page_title %}Gestion du Catalogue de Pièces{% endblock %}
+
+{% block content %}
+<a href="{% url 'piece_create' %}" class="btn btn-success">➕ Ajouter une Pièce</a>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nom</th>
+        <th>Numéro de Pièce</th>
+        <th>Constructeur</th>
+        <th>Fournisseur Principal</th>
+        <th>Prix Unitaire</th>
+        <th>Date Prix</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for piece in pieces %}
+    <tr>
+        <td>{{ piece.nom }}</td>
+        <td>{{ piece.numero }}</td>
+        <td>{{ piece.constructeur|default:"N/A" }}</td>
+        <td>{{ piece.fournisseur.nom|default:"Non renseigné" }}</td>
+        <td>{{ piece.prix|floatformat:2 }}</td>
+        <td>{{ piece.date_prix|date:"d/m/Y" }}</td>
+        <td>
+            <a href="{% url 'piece_update' pk=piece.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'piece_delete' pk=piece.id %}" class="btn btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="7">Aucune pièce trouvée dans le catalogue.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

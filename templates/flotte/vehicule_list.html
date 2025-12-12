@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Véhicules{% endblock %}
+{% block page_title %}Liste des Véhicules{% endblock %}
+
+{% block content %}
+<a href="{% url 'vehicule_create' %}" class="btn btn-success"><i class="fa-solid fa-plus"></i> Ajouter un Véhicule</a>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Matricule</th>
+        <th>Marque/Modèle</th>
+        <th>Carburant</th>
+        <th>Département</th>
+        <th>Actif</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for vehicule in vehicules %}
+    <tr>
+        <td>{{ vehicule.matricule }}</td>
+        <td>{{ vehicule.marque }} {{ vehicule.modele }}</td>
+        <td>{{ vehicule.type_carburant }}</td>
+        <td>{{ vehicule.departement.nom|default:"Non affecté" }}</td>
+        <td>{% if vehicule.actif == 1 %}Oui{% else %}Non{% endif %}</td>
+        <td>
+            <a href="{% url 'vehicule_update' pk=vehicule.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'vehicule_delete' pk=vehicule.id %}" class="btn btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">Aucun véhicule enregistré.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

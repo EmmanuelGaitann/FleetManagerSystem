@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Liste des Taxes de Circulation{% endblock %}
+
+{% block content %}
+<a href="{% url 'taxe_create' %}" class="btn btn-success mb-3"><i class="fa-solid fa-plus"></i> Ajouter une Taxe de Circulation</a>
+
+{% if taxes %}
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Véhicule</th>
+        <th>Date de Paiement</th>
+        <th>Expiration</th>
+        <th>Rappel (Jours)</th>
+        <th>Notes</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for taxe in taxes %}
+    <tr>
+        <td>{{ taxe.vehicule.immatriculation }}</td>
+        <td>{{ taxe.date_taxe_circulation|date:"d M Y" }}</td>
+        <td>{{ taxe.expiration|date:"d M Y" }}</td>
+        <td>{{ taxe.rappel_avant_jours }}</td>
+        <td>{{ taxe.note|default:"N/A"|truncatechars:30 }}</td>
+        <td>
+            <a href="{% url 'taxe_update' taxe.pk %}" class="btn btn-sm btn-primary">Modifier</a>
+            <a href="{% url 'taxe_delete' taxe.pk %}" class="btn btn-sm btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="alert alert-info">Aucune taxe de circulation enregistrée pour le moment.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Liste des Visites Techniques{% endblock %}
+
+{% block content %}
+<a href="{% url 'visite_create' %}" class="btn btn-success mb-3"><i class="fa-solid fa-plus"></i> Ajouter une Visite Technique</a>
+
+{% if visites %}
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Véhicule</th>
+        <th>Dernière Visite</th>
+        <th>Prochaine Visite</th>
+        <th>Rappel (Jours)</th>
+        <th>Notes</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for visite in visites %}
+    <tr>
+        <td>{{ visite.vehicule.immatriculation }}</td>
+        <td>{{ visite.derniere_visite|date:"d M Y" }}</td>
+        <td>{{ visite.prochaine_visite|date:"d M Y" }}</td>
+        <td>{{ visite.rappel_avant_jours }}</td>
+        <td>{{ visite.note|default:"N/A"|truncatechars:30 }}</td>
+        <td>
+            <a href="{% url 'visite_update' visite.pk %}" class="btn btn-sm btn-primary">Modifier</a>
+            <a href="{% url 'visite_delete' visite.pk %}" class="btn btn-sm btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="alert alert-info">Aucune visite technique enregistrée pour le moment.</p>
+{% endif %}
+{% endblock %}

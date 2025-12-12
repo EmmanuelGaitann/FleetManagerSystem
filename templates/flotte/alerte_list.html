@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Tableau de Bord des Alertes{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">Alertes et Rappels Urgents</h3>
+<p class="text-muted">Vue d'ensemble des documents et inspections qui nécessitent une action immédiate.</p>
+
+<div class="row">
+    <div class="col-12 mt-4">
+        <h4>Assurances (Expiration Proche)</h4>
+        {% if alertes.assurances %}
+        <table class="table table-bordered table-warning table-hover">
+            <thead>
+            <tr>
+                <th>Véhicule</th>
+                <th>Fournisseur</th>
+                <th>Expiration</th>
+                <th>Rappel configuré (Jours)</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for assurance in alertes.assurances %}
+            <tr>
+                <td><strong>{{ assurance.vehicule.immatriculation }}</strong> ({{ assurance.vehicule.marque }} {{ assurance.vehicule.modele }})</td>
+                <td>{{ assurance.fournisseur }}</td>
+                <td>{{ assurance.expiration_assurance|date:"d M Y" }}</td>
+                <td>{{ assurance.rappel_avant_jours }}</td>
+                <td><a href="{% url 'assurance_update' assurance.pk %}" class="btn btn-sm btn-primary">Renouveler / Modifier</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="alert alert-success">✅ Aucune alerte d'assurance pour le moment. Tout est en ordre.</p>
+        {% endif %}
+    </div>
+
+    <div class="col-12 mt-5">
+        <h4>Taxes de Circulation (Expiration Proche)</h4>
+        {% if alertes.taxes %}
+        <table class="table table-bordered table-warning table-hover">
+            <thead>
+            <tr>
+                <th>Véhicule</th>
+                <th>Expiration</th>
+                <th>Rappel configuré (Jours)</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for taxe in alertes.taxes %}
+            <tr>
+                <td><strong>{{ taxe.vehicule.immatriculation }}</strong> ({{ taxe.vehicule.marque }} {{ taxe.vehicule.modele }})</td>
+                <td>{{ taxe.expiration|date:"d M Y" }}</td>
+                <td>{{ taxe.rappel_avant_jours }}</td>
+                <td><a href="{% url 'taxe_update' taxe.pk %}" class="btn btn-sm btn-primary">Mettre à jour</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="alert alert-success">✅ Aucune alerte de taxe de circulation pour le moment. Tout est en ordre.</p>
+        {% endif %}
+    </div>
+
+    <div class="col-12 mt-5">
+        <h4>Visites Techniques (Prochaine Visite)</h4>
+        {% if alertes.visites %}
+        <table class="table table-bordered table-warning table-hover">
+            <thead>
+            <tr>
+                <th>Véhicule</th>
+                <th>Prochaine Visite</th>
+                <th>Rappel configuré (Jours)</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for visite in alertes.visites %}
+            <tr>
+                <td><strong>{{ visite.vehicule.immatriculation }}</strong> ({{ visite.vehicule.marque }} {{ visite.vehicule.modele }})</td>
+                <td>{{ visite.prochaine_visite|date:"d M Y" }}</td>
+                <td>{{ visite.rappel_avant_jours }}</td>
+                <td><a href="{% url 'visite_update' visite.pk %}" class="btn btn-sm btn-primary">Mettre à jour</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="alert alert-success">✅ Aucune alerte de visite technique pour le moment. Tout est en ordre.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

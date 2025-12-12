@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<style>
+
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f7f6;
+        color: #333;
+    }
+    .container {
+
+        display: flex;
+        justify-content: center;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('https://images.unsplash.com/photo-1486673748761-a8d18475c757?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXV0b3JvdXRlfGVufDB8fDB8fHww');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: rgba(0, 0, 0, 0.6);
+        background-blend-mode: overlay;
+        z-index: -1;
+    }
+
+    .contain {
+        display: flex;
+        justify-content: center;
+        padding: 40px 10px;
+    }
+
+    .contain {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        width: 100%;
+        position: relative;
+        z-index: 10;
+
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+
+    .contain > div {
+        width: calc(50% - 10px);
+        margin-bottom: 20px;
+        align-self: flex-start;
+    }
+
+    form > .alert-danger {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    form > button[type="submit"],
+    form > a.btn {
+        flex-basis: 100%;
+        margin-top: 20px;
+        width: 100%;
+        order: 10;
+    }
+
+    /* Conteneur des boutons (pour leur donner une marge en haut et pouvoir les centrer si besoin) */
+    .form-actions {
+        width: 100%; /* Prend la ligne complète */
+        margin-top: 20px;
+        text-align: right; /* Alignement par défaut des boutons à droite (standard dans les formulaires de gestion) */
+    }
+
+    /* Pour que les boutons soient côte à côte */
+    form > button[type="submit"] {
+        margin-right: 15px; /* Espace entre les deux boutons */
+        width: auto; /* Permet aux boutons de retrouver leur taille naturelle */
+        flex-basis: auto; /* Annule la règle 100% précédente pour les boutons individuels */
+    }
+    form > a.btn {
+        width: auto;
+        flex-basis: auto;
+    }
+
+    /* --- Règle Responsive (Un seul champ par ligne sur les petits écrans) --- */
+    @media (max-width: 768px) {
+        form > div {
+            width: 100%;
+        }
+
+        /* Sur mobile, les boutons peuvent reprendre toute la largeur si vous le souhaitez */
+        /*
+        form button[type="submit"], form a.btn {
+            margin-bottom: 10px;
+            width: 100%;
+            margin-right: 0;
+        }
+        */
+    }
+
+
+    /* --- Styles des éléments internes (Inputs, Labels, Erreurs) --- */
+
+    form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    form input[type="text"],
+    form input[type="date"],
+    form input[type="number"],
+    form textarea,
+    form input[type="email"],
+    form select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1em;
+        color: #000;
+        background-color: #f0f0f0;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        margin: 0;
+    }
+
+    form input:focus,
+    form textarea:focus,
+    form select:focus {
+        border-color: #8a2be2;
+        box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+        outline: none;
+        background-color: #fff;
+    }
+
+    /* Erreur générale */
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        padding: 12px;
+        margin-bottom: 25px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+
+    /* Erreur spécifique à un champ */
+    form > div > div[style*="color: red"] {
+        margin-top: 5px;
+        padding: 5px 0 0 0;
+        color: #cc0000 !important;
+        font-size: 0.9em;
+        font-style: italic;
+    }
+
+    /* --- Styles des Boutons Individuels (Appliquer les styles visuels) --- */
+
+    .btn-success {
+        background-color: #8a2be2;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        display: inline-block;
+    }
+
+    .btn-success:hover {
+        background-color: #6a0dad;
+    }
+
+    .btn {
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 10px 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn:hover {
+        background-color: #ccc;
+    }
+</style>
+<div class="container">
+<form method="post">
+    <div class="contain">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert-danger">
+        {% for error in form.non_field_errors %}
+        {{ error }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% for field in form %}
+    <div style="margin-bottom: 15px;">
+        <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+        {{ field }}
+        {% if field.errors %}
+        <div style="color: red; font-size: 0.9em;">
+            {% for error in field.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}</div>
+
+    <button type="submit" class="btn btn-success">{{ action }}</button>
+    <a href="{% url 'vehicule_list' %}" class="btn">Annuler</a>
+</form>
+</div>
+{% endblock %}

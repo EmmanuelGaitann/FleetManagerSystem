@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Fournisseurs{% endblock %}
+{% block page_title %}Gestion des Fournisseurs{% endblock %}
+
+{% block content %}
+<a href="{% url 'fournisseur_create' %}" class="btn btn-success">➕ Ajouter un Fournisseur</a>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nom</th>
+        <th>Type d'Activité</th>
+        <th>Contact</th>
+        <th>Ville</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for fournisseur in fournisseurs %}
+    <tr>
+        <td>{{ fournisseur.nom }}</td>
+        <td>{{ fournisseur.type_activite }}</td>
+        <td>{{ fournisseur.contact }}</td>
+        <td>{{ fournisseur.ville }}</td>
+        <td>
+            <a href="{% url 'fournisseur_update' pk=fournisseur.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'fournisseur_delete' pk=fournisseur.id %}" class="btn btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">Aucun fournisseur trouvé.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

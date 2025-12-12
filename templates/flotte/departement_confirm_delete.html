@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Supprimer{% endblock %}
+{% block page_title %}Supprimer le Département{% endblock %}
+
+{% block content %}
+<div class="alert-danger">
+    Êtes-vous sûr de vouloir supprimer le département : <strong>{{ departement.nom }}</strong> ?
+    Cette action est irréversible.
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer la Suppression</button>
+    <a href="{% url 'departement_list' %}" class="btn">Annuler</a>
+</form>
+{% endblock %}

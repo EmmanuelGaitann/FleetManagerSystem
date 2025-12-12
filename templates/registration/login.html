@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion{% endblock %}
+{% block page_title %}Connexion au Fleet Management System (FMS){% endblock %}
+
+{% block content %}
+<style>
+    body{
+        font-family: Poppins, Helvetica, sans-serif;
+    }
+    body::before {
+
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('https://static.vecteezy.com/ti/photos-gratuite/p1/1310222-voitures-voyageant-sur-l-autoroute-gratuit-photo.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: rgba(0, 0, 0, 0.4);
+        background-blend-mode: overlay; /* Mélange l'image et la couleur sombre */
+        z-index: -1;
+    }
+
+    form {
+        position: relative;
+        z-index: 10;
+        background: white;
+        padding: 30px 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    form > div {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 5px;
+        position: relative;
+    }
+
+    form > div:nth-child(3) {
+        margin-bottom: 30px;
+    }
+    form label, i {
+        color: rgb(110, 110, 110) !important;
+    }
+
+    form input[type="text"],
+    form input[type="password"] {
+        flex-grow: 1;
+        border: none;
+        outline: none;
+        font-size: 1em;
+        background-color: rgba(227, 222, 222, 0.5); /* Couleur de fond du champ */
+        color: #000; /* Le texte tapé est noir */
+        padding: 15px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        height: 40px;
+        width: 100%;
+    }
+    form button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 1.1em;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: linear-gradient(to right, rgba(52, 188, 60, 0.68), rgba(52, 152, 92, 0.86));
+        box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+        margin-top: 10px;
+    }
+    form button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(138, 43, 226, 0.6);
+    }
+    form button[type="submit"]:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+    }
+    form p a {
+        color: #8a2be2;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    form p a:hover {
+        color: #ff69b4;
+        text-decoration: underline;
+    }
+
+
+</style>
+<center>
+<form method="post">
+    <center>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert-danger">
+        {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div>
+        <i class="fa-solid fa-user"></i> <label for="{{ form.username.id_for_label }}">Nom d'utilisateur :</label>
+        {{ form.username }}
+        {% if form.username.errors %}<small style="color: red;">{{ form.username.errors }}</small>{% endif %}
+    </div>
+
+    <div>
+        <i class="fa-solid fa-lock"></i> <label for="{{ form.password.id_for_label }}">Mot de passe :</label>
+        {{ form.password }}
+        {% if form.password.errors %}<small style="color: red;">{{ form.password.errors }}</small>{% endif %}
+    </div>
+
+    <button type="submit">Se connecter</button>
+
+    <input type="hidden" name="next" value="{{ next }}" />
+
+    <p style="margin-top: 20px;"><a href="{% url 'password_reset' %}">Mot de passe oublié ?</a></p>
+    </center>
+</form>
+</center>
+{% endblock %}

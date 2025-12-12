@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Départements{% endblock %}
+{% block page_title %}Gestion des Départements{% endblock %}
+
+{% block content %}
+<a href="{% url 'departement_create' %}" class="btn btn-success"><i class="fa-solid fa-plus"></i> Ajouter un Département</a>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Créé le</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for departement in departements %}
+    <tr>
+        <td>{{ departement.id }}</td>
+        <td>{{ departement.nom }}</td>
+        <td>{{ departement.created_at|date:"d/m/Y H:i" }}</td>
+        <td>
+            <a href="{% url 'departement_update' pk=departement.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'departement_delete' pk=departement.id %}" class="btn btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4">Aucun département trouvé.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

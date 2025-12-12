@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Conducteurs{% endblock %}
+{% block page_title %}Liste des Conducteurs{% endblock %}
+
+{% block content %}
+<a href="{% url 'conducteur_create' %}" class="btn btn-success"><i class="fa-solid fa-plus"></i> Ajouter un Conducteur</a>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nom Complet</th>
+        <th>Permis N°</th>
+        <th>Tél. Principal</th>
+        <th>Date d'Embauche</th>
+        <th>Ville</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for c in conducteurs %}
+    <tr>
+        <td>{{ c.nom|upper }} {{ c.prenom|capfirst }}</td>
+        <td>{{ c.numero_permis }}</td>
+        <td>{{ c.tel1|default:"N/A" }}</td>
+        <td>{{ c.date_embauche|date:"d/m/Y" }}</td>
+        <td>{{ c.ville|default:"N/A" }}</td>
+        <td>
+            <a href="{% url 'conducteur_update' pk=c.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'conducteur_delete' pk=c.id %}" class="btn btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">Aucun conducteur enregistré.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

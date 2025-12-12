@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<style>
+    form input[type="text"],
+    form input[type="date"],
+    form input[type="number"],
+    form textarea,
+    form input[type="email"],
+    form select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1em;
+        color: #000;
+        background-color: #f0f0f0;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        margin: 0;
+    }
+</style>
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ title }}</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="form-group mb-3">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary mt-3">{{ action }}</button>
+            <a href="{% url 'taxe_list' %}" class="btn btn-secondary mt-3">Annuler</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

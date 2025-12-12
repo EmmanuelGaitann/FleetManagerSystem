@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Supprimer Conducteur{% endblock %}
+{% block page_title %}Supprimer le Conducteur{% endblock %}
+
+{% block content %}
+<div class="alert-danger">
+    Êtes-vous sûr de vouloir supprimer le conducteur : <strong>{{ conducteur.nom }} {{ conducteur.prenom }} (Permis N° {{ conducteur.numero_permis }})</strong> ?
+    <br>
+    **ATTENTION :** Si ce conducteur est lié à des affectations ou d'autres données, cette suppression pourrait causer des erreurs ou des données orphelines.
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer la Suppression</button>
+    <a href="{% url 'conducteur_list' %}" class="btn">Annuler</a>
+</form>
+{% endblock %}

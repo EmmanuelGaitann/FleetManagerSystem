@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<style>
+    form input[type="text"],
+    form input[type="date"],
+    form input[type="number"],
+    form textarea,
+    form input[type="email"],
+    form select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1em;
+        color: #000;
+        background-color: #f0f0f0;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        margin: 0;
+    }
+</style>
+<form method="post">
+    {% csrf_token %}
+
+    <div>
+        <label for="{{ form.nom.id_for_label }}">Nom du Département:</label>
+        {{ form.nom }}
+    </div>
+
+    <button type="submit" class="btn btn-success">{{ action }}</button>
+    <a href="{% url 'departement_list' %}" class="btn">Annuler</a>
+</form>
+{% endblock %}

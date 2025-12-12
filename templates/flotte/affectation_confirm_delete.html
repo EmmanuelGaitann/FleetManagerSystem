@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Supprimer Affectation{% endblock %}
+{% block page_title %}Supprimer l'Affectation{% endblock %}
+
+{% block content %}
+<div class="alert-danger">
+    Êtes-vous sûr de vouloir supprimer cette affectation ?
+    <br>
+    **Détails :** <ul>
+    <li>Véhicule : **{{ affectation.vehicule.matricule }}**</li>
+    <li>Conducteur : **{{ affectation.conducteur.nom }} {{ affectation.conducteur.prenom }}**</li>
+    <li>Période : Du **{{ affectation.date_debut|date:"d/m/Y" }}** au **{{ affectation.date_fin|default:"aujourd'hui (en cours)" }}**</li>
+</ul>
+    Cette action est irréversible.
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer la Suppression</button>
+    <a href="{% url 'affectation_list' %}" class="btn">Annuler</a>
+</form>
+{% endblock %}

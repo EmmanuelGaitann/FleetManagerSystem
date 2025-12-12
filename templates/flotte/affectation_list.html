@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Affectations{% endblock %}
+{% block page_title %}Gestion des Affectations Véhicule/Conducteur{% endblock %}
+
+{% block content %}
+<a href="{% url 'affectation_create' %}" class="btn btn-success"><i class="fa-solid fa-plus"></i> Créer une Affectation</a>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Véhicule</th>
+        <th>Conducteur</th>
+        <th>Date de Début</th>
+        <th>Date de Fin</th>
+        <th>Statut</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for a in affectations %}
+    <tr>
+        <td>{{ a.vehicule.matricule }} ({{ a.vehicule.marque }} {{ a.vehicule.modele }})</td>
+        <td>{{ a.conducteur.nom|upper }} {{ a.conducteur.prenom|capfirst }}</td>
+        <td>{{ a.date_debut|date:"d/m/Y" }}</td>
+        <td>
+            {% if a.date_fin %}
+            {{ a.date_fin|date:"d/m/Y" }}
+            {% else %}
+            *(Affectation en cours)*
+            {% endif %}
+        </td>
+        <td>
+            {% if not a.date_fin %}
+            <span class="badge bg-success" style="background-color: green; color: white; padding: 5px; border-radius: 5px;">ACTIF</span>
+            {% else %}
+            <span class="badge bg-secondary" style="background-color: gray; color: white; padding: 5px; border-radius: 5px;">Terminé</span>
+            {% endif %}
+        </td>
+        <td>
+            <a href="{% url 'affectation_update' pk=a.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'affectation_delete' pk=a.id %}" class="btn btn-danger">Supprimer</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">Aucune affectation enregistrée.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

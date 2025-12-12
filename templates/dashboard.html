@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<style>
+    form input[type="text"],
+    form input[type="date"],
+    form input[type="number"],
+    form textarea,
+    form input[type="email"],
+    form select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1em;
+        color: #000;
+        background-color: #f0f0f0;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        margin: 0;
+    }
+</style>
+
+<!-- WELCOME -->
+<div class="alert alert-light border-start border-4 border-success shadow-sm mb-4 p-3 rounded-3">
+    <i class="fas fa-user-circle text-success me-2"></i>
+    Bonjour <strong>{{ user.username }}</strong> —
+    <span class="badge bg-success">{{ user_role }}</span>
+</div>
+
+{% if user.role.nom == "Gestionnaire Flotte" or user.is_superuser %}
+
+<!-- KPIs -->
+<div class="row g-4 mb-4">
+
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="card modern-card shadow p-4 rounded-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Alertes urgentes</div>
+                    <div class="h3 fw-bolder mb-0 text-danger">{{ alertes.total_urgentes|default:0 }}</div>
+                </div>
+                <div class="icon-circle bg-danger bg-opacity-10">
+                    <i class="fas fa-bell text-danger fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="card modern-card shadow p-4 rounded-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Véhicules actifs</div>
+                    <div class="h3 fw-bolder mb-0 text-success">{{ total_vehicules|default:0 }}</div>
+                </div>
+                <div class="icon-circle bg-success bg-opacity-10">
+                    <i class="fas fa-car-side text-success fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="card modern-card shadow p-4 rounded-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Conducteurs</div>
+                    <div class="h3 fw-bolder mb-0 text-info">{{ total_conducteurs|default:0 }}</div>
+                </div>
+                <div class="icon-circle bg-info bg-opacity-10">
+                    <i class="fas fa-users text-info fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="card modern-card shadow p-4 rounded-4 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Affectations</div>
+                    <div class="h3 fw-bolder mb-0 text-secondary">{{ affectations_en_cours|default:0 }}</div>
+                </div>
+                <div class="icon-circle bg-secondary bg-opacity-10">
+                    <i class="fas fa-route text-secondary fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Shortcuts -->
+<div class="row g-4 mb-5">
+
+    <div class="col-xl-4 col-md-6">
+        <div class="card shadow-lg p-4 rounded-4 h-100 border-start border-success border-5">
+            <div class="card-body p-0">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="text-success fs-1 me-3">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-success mb-0">Gestion des véhicules</h4>
+                </div>
+
+                <p class="text-muted mb-4">
+                    Inventaire complet des véhicules et suivi de leur statut.
+                </p>
+
+                <a href="{% url 'vehicule_list' %}" class="btn btn-success btn-lg w-100">
+                    <i class="fas fa-list-ul me-2"></i> Accéder à l'inventaire
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+        <div class="card shadow-lg p-4 rounded-4 h-100 border-start border-primary border-5">
+            <div class="card-body p-0">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="text-primary fs-1 me-3">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-primary mb-0">Affectations & conducteurs</h4>
+                </div>
+
+                <p class="text-muted mb-4">
+                    Gestion des missions, planification et suivi des pilotes.
+                </p>
+
+                <div class="d-flex justify-content-start gap-2">
+                    <a href="{% url 'affectation_list' %}" class="btn btn-primary">
+                        Affectations
+                    </a>
+                    <a href="{% url 'conducteur_list' %}" class="btn btn-outline-primary">
+                        Conducteurs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-12">
+        <div class="card shadow-lg p-4 rounded-4 h-100 border-start border-warning border-5">
+            <div class="card-body p-0">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="text-warning fs-1 me-3">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-warning mb-0">Suivi des documents</h4>
+                </div>
+
+                <p class="text-muted mb-4">
+                    Gestion et expiration des documents légaux (assurances, visites techniques...).
+                </p>
+
+                <div class="d-flex justify-content-start gap-2">
+                    <a href="{% url 'assurance_list' %}" class="btn btn-warning text-white">
+                        Assurances
+                    </a>
+                    <a href="{% url 'visite_list' %}" class="btn btn-outline-warning">
+                        Visites
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% else %}
+
+<!-- OPÉRATEURS -->
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="card shadow-sm p-4 rounded-3 h-100" style="border-left:4px solid #dc3545;">
+            <h5 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i> Déclarer anomalie</h5>
+            <p class="text-muted small mb-3">Signaler un incident.</p>
+            <a class="btn btn-danger btn-sm" href="#">Signaler</a>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm p-4 rounded-3 h-100" style="border-left:4px solid #198754;">
+            <h5 class="text-success"><i class="fas fa-gas-pump me-2"></i> Ravitaillement</h5>
+            <p class="text-muted small mb-3">Déclarer un plein.</p>
+            <a href="{% url 'ravitaillement_list' %}" class="btn btn-success btn-sm">Déclarer</a>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card shadow-sm p-4 rounded-3">
+            <h5><i class="fas fa-truck-moving text-primary me-2"></i> Affectation actuelle</h5>
+
+            {% if affectation_actuelle %}
+            <p class="text-muted small mt-2">
+                <strong>Véhicule :</strong> {{ affectation_actuelle.vehicule_matricule }}<br>
+                <strong>Début :</strong> {{ affectation_actuelle.date_debut|date:"d M Y" }}
+            </p>
+            {% else %}
+            <p class="text-warning mt-2">
+                <i class="fas fa-exclamation-triangle"></i>
+                Aucune affectation active.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
