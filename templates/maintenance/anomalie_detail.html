@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">{{ title }} (ID: {{ anomalie.id }})</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Véhicule:</strong> {{ anomalie.vehicule.matricule }} ({{ anomalie.vehicule.modele }})
+                </div>
+                <div class="col-md-6">
+                    <strong>Conducteur Déclarant:</strong> {{ anomalie.conducteur }}
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Type d'Anomalie:</strong> <span class="badge bg-secondary">{{ anomalie.type_anomalie }}</span>
+                </div>
+                <div class="col-md-6">
+                    <strong>Statut Actuel:</strong>
+                    <span class="badge
+                        {% if anomalie.statut == 'Résolu' %}bg-success
+                        {% elif anomalie.statut == 'En cours' %}bg-warning text-dark
+                        {% else %}bg-danger{% endif %}">
+                        {{ anomalie.statut }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Date de Déclaration:</strong> {{ anomalie.date_declaration|date:"Y-m-d H:i" }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Chemin Photo:</strong>
+                    {% if anomalie.photo_path %}
+                    <a href="{{ anomalie.photo_path }}" target="_blank">{{ anomalie.photo_path|truncatechars:30 }}</a>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <strong>Description Détaillée:</strong>
+                <p class="border p-2 rounded bg-light">{{ anomalie.description }}</p>
+            </div>
+
+        </div>
+        <div class="card-footer d-flex justify-content-end">
+            <a href="{% url 'anomalie_list' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-list"></i> Retour à la Liste
+            </a>
+            {% if request.user.role == 'Gestionnaire Flotte' %}
+            <a href="{% url 'anomalie_update' anomalie.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier le Statut
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-pen-to-square"></i> {{ title }}</h2>
+
+    <form method="post" class="card p-4">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.vehicule.label_tag }}
+                {{ form.vehicule }}
+                {% for error in form.vehicule.errors %}<span class="text-danger">{{ error }}</span>{% endfor %}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.conducteur.label_tag }}
+                {{ form.conducteur }}
+                {% for error in form.conducteur.errors %}<span class="text-danger">{{ error }}</span>{% endfor %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.type_anomalie.label_tag }}
+                {{ form.type_anomalie }}
+                {% for error in form.type_anomalie.errors %}<span class="text-danger">{{ error }}</span>{% endfor %}
+            </div>
+            {% comment %} Le statut n'est visible que lors de la modification par le Gestionnaire Flotte {% endcomment %}
+            {% if form.instance.pk and request.user.role == 'Gestionnaire Flotte' %}
+            <div class="col-md-6 mb-3">
+                {{ form.statut.label_tag }}
+                {{ form.statut }}
+                {% for error in form.statut.errors %}<span class="text-danger">{{ error }}</span>{% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+            {% for error in form.description.errors %}<span class="text-danger">{{ error }}</span>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.photo_path.label_tag }}
+            {{ form.photo_path }}
+            {% for error in form.photo_path.errors %}<span class="text-danger">{{ error }}</span>{% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-success me-2">
+                <i class="fas fa-save"></i> {{ action }}
+            </button>
+            <a href="{% url 'anomalie_list' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

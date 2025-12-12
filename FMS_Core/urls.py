@@ -27,4 +27,6 @@ urlpatterns = [
 
     # --- AJOUT : Gestion des Utilisateurs --
     path('utilisateurs/', include('utilisateurs.urls')),
+    # --- AJOUT : Module Rapports et Statistiques ---
+    path('rapports/', include('rapports.urls')),
 ]

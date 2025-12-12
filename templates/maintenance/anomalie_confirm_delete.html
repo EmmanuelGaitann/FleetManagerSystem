@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Confirmation de Suppression</h4>
+        <p>Êtes-vous sûr de vouloir supprimer définitivement l'anomalie suivante ?</p>
+        <hr>
+        <p class="mb-0">
+            <strong>Anomalie ID:</strong> {{ anomalie.id }} <br>
+            <strong>Véhicule:</strong> {{ anomalie.vehicule.matricule }} <br>
+            <strong>Description:</strong> {{ anomalie.description|truncatechars:50 }}
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Confirmer la Suppression
+        </button>
+        <a href="{% url 'anomalie_list' %}" class="btn btn-secondary">
+            Annuler
+        </a>
+    </form>
+</div>
+{% endblock %}

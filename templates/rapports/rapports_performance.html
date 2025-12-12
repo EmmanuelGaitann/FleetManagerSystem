@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Rapport de Performance des Véhicules{% endblock %}
+{% block page_title %}Rapport de Performance{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h4 class="text-success"><i class="fas fa-gauge-high me-2"></i> Performance et Consommation des Véhicules</h4>
+        <p class="text-muted">Analyse de l'efficacité du carburant et du kilométrage.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>Matricule</th>
+                <th>Marque/Modèle</th>
+                <th>Km Parcouru Total (Km)</th>
+                <th>Litres Consommés (L)</th>
+                <th>Consommation Moyenne (L/100Km)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for rapport in performance_rapport %}
+            <tr>
+                <td><strong>{{ rapport.vehicule__matricule }}</strong></td>
+                <td>{{ rapport.vehicule__marque }} {{ rapport.vehicule__modele }}</td>
+                <td>{{ rapport.kilometrage_total|default:"0" }}</td>
+                <td>{{ rapport.litres_total|default:"0.00"|floatformat:2 }}</td>
+                <td>
+                    {% if rapport.consommation_moyenne %}
+                    <strong class="text-success">{{ rapport.consommation_moyenne|floatformat:2 }}</strong>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">Aucune donnée de performance disponible.</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

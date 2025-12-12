@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Alertes et Rappels{% endblock %}
+{% block page_title %}Liste des Alertes et Rappels{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h4 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i> Alertes d'Expiration (Moins de 30 jours)</h4>
+        <p class="text-muted">Alerte des documents et échéances nécessitant une action immédiate.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead class="table-danger">
+            <tr>
+                <th>Véhicule</th>
+                <th>Type d'Alerte</th>
+                <th>Date d'Expiration</th>
+                <th>Jours Restants</th>
+                <th>Rappel configuré (jours)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for alerte in alertes %}
+            <tr class="{% if alerte.jours_restants < 0 %}table-danger{% elif alerte.jours_restants <= 7 %}table-warning{% endif %}">
+                <td><strong>{{ alerte.vehicule__matricule }}</strong></td>
+                <td>
+                    <span class="badge bg-secondary">{{ alerte.type_alerte|upper }}</span>
+                </td>
+                <td>{{ alerte.expiration|date:"d M Y" }}</td>
+                <td>
+                    <strong class="{% if alerte.jours_restants < 0 %}text-danger{% elif alerte.jours_restants <= 7 %}text-warning{% else %}text-success{% endif %}">
+                        {% if alerte.jours_restants < 0 %}
+                        Expiré ({{ alerte.jours_restants|abs }} jours)
+                        {% else %}
+                        {{ alerte.jours_restants }} jours
+                        {% endif %}
+                    </strong>
+                </td>
+                <td>{{ alerte.rappel_avant_jours }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">Toutes les échéances sont sous contrôle (aucune alerte urgente).</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

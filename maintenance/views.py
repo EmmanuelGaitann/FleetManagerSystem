@@ -4,8 +4,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction # NÉCESSAIRE pour garantir l'intégrité (Entretien + Détails)
 from django.db.models import Sum, F
 from flotte.views import role_required # Votre décorateur de sécurité
-from .models import Entretien, DetailDepense
-from .forms import EntretienForm, DetailDepenseFormSet
+from .models import Entretien, DetailDepense, Anomalie
+from .forms import EntretienForm, DetailDepenseFormSet, AnomalieForm
+from django.utils import timezone
 
 # -----------------------------------------------------------
 # Vues CRUD du Module Entretien (Avec Formset)
@@ -121,3 +122,94 @@ def entretien_delete(request, pk):
     }
     # Le template doit être créé : maintenance/entretien_confirm_delete.html
     return render(request, 'maintenance/entretien_confirm_delete.html', context)
+
+# -----------------------------------------------------------
+# Vues CRUD du Module Anomalie
+# -----------------------------------------------------------
+
+@role_required('Gestionnaire Flotte', 'Chauffeur/Opérateur')
+def anomalie_list(request):
+    """Liste de toutes les anomalies."""
+    anomalies = Anomalie.objects.select_related('vehicule', 'conducteur').order_by('-date_declaration')
+
+    context = {
+        'anomalies': anomalies,
+        'title': 'Liste des Anomalies Déclarées'
+    }
+    # Le template doit être créé : maintenance/anomalie_list.html
+    return render(request, 'maintenance/anomalie_list.html', context)
+
+
+@role_required('Gestionnaire Flotte', 'Chauffeur/Opérateur')
+def anomalie_create(request):
+    """Déclaration d'une nouvelle anomalie."""
+    if request.method == 'POST':
+        form = AnomalieForm(request.POST)
+        if form.is_valid():
+            anomalie = form.save(commit=False)
+            # Définir le statut et la date au moment de la déclaration
+            anomalie.statut = 'Signalé'
+            anomalie.date_declaration = timezone.now() # Nécessite d'importer timezone
+
+            anomalie.save()
+            return redirect('anomalie_list')
+    else:
+        form = AnomalieForm()
+
+    context = {
+        'form': form,
+        'title': 'Déclarer une Anomalie',
+        'action': 'Déclarer'
+    }
+    # Le template doit être créé : maintenance/anomalie_form.html
+    return render(request, 'maintenance/anomalie_form.html', context)
+
+
+@role_required('Gestionnaire Flotte')
+def anomalie_update(request, pk):
+    """Modification du statut ou des détails par un Gestionnaire Flotte."""
+    anomalie = get_object_or_404(Anomalie, pk=pk)
+
+    if request.method == 'POST':
+        form = AnomalieForm(request.POST, instance=anomalie)
+        if form.is_valid():
+            form.save()
+            return redirect('anomalie_list')
+    else:
+        form = AnomalieForm(instance=anomalie)
+
+    context = {
+        'form': form,
+        'title': 'Mettre à jour l\'Anomalie',
+        'action': 'Sauvegarder'
+    }
+    return render(request, 'maintenance/anomalie_form.html', context)
+
+
+@role_required('Gestionnaire Flotte')
+def anomalie_detail(request, pk):
+    """Afficher les détails d'une anomalie (pour inspection/résolution)."""
+    anomalie = get_object_or_404(Anomalie, pk=pk)
+
+    context = {
+        'anomalie': anomalie,
+        'title': f'Détails Anomalie #{anomalie.id}'
+    }
+    # Le template doit être créé : maintenance/anomalie_detail.html
+    return render(request, 'maintenance/anomalie_detail.html', context)
+
+
+@role_required('Gestionnaire Flotte')
+def anomalie_delete(request, pk):
+    """Suppression d'une anomalie."""
+    anomalie = get_object_or_404(Anomalie, pk=pk)
+    if request.method == 'POST':
+        anomalie.delete()
+        return redirect('anomalie_list')
+
+    context = {
+        'anomalie': anomalie,
+        'title': 'Supprimer l\'Anomalie'
+    }
+    # Le template doit être créé : maintenance/anomalie_confirm_delete.html
+    return render(request, 'maintenance/anomalie_confirm_delete.html', context)

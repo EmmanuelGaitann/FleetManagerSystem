@@ -6,6 +6,7 @@ from .models import Entretien, DetailDepense, Assurance, TaxeCirculation, Visite
 # Importez les modèles externes nécessaires
 from flotte.models import Vehicule, Conducteur
 from fournisseurs.models import Fournisseur
+from .models import Anomalie
 
 # ==========================================================
 # 1. Formulaire Ligne de Dépense (Base pour le Formset)
@@ -108,4 +109,36 @@ class VisiteTechniqueForm(forms.ModelForm):
         widgets = {
             'derniere_visite': forms.DateInput(attrs={'type': 'date'}),
             'prochaine_visite': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+# ==========================================================
+# 8. Formulaire Anomalie (Déclaration)
+# ==========================================================
+
+class AnomalieForm(forms.ModelForm):
+    # Liste de choix pour le type d'anomalie (pour l'affichage en liste déroulante)
+    TYPE_ANOMALIE_CHOICES = [
+        ('Mecanique', 'Problème Mécanique'),
+        ('Electrique', 'Problème Électrique'),
+        ('Accident', 'Accident / Dommage Carrosserie'),
+        ('Pneu', 'Problème de Pneu'),
+        ('Autre', 'Autre'),
+    ]
+
+    type_anomalie = forms.ChoiceField(choices=TYPE_ANOMALIE_CHOICES, label="Type d'Anomalie")
+
+    class Meta:
+        model = Anomalie
+        # Le statut et la date de déclaration seront gérés automatiquement par la vue.
+        fields = ['vehicule', 'conducteur', 'type_anomalie', 'description', 'photo_path']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'photo_path': forms.TextInput(attrs={'placeholder': 'Chemin d\'accès ou lien vers une photo (Optionnel)'}),
+        }
+        labels = {
+            'vehicule': 'Véhicule concerné',
+            'conducteur': 'Conducteur déclarant',
+            'description': 'Description détaillée du problème',
+            'photo_path': 'Photo (Optionnel)',
         }

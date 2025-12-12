@@ -16,7 +16,7 @@ from .forms import DepartementForm, VehiculeForm, ConducteurForm, AffectationFor
 # Décorateur RBAC (Contrôle d'Accès basé sur les Rôles)
 # -----------------------------------------------------------
 
-def role_required(role_name):
+def role_required(*allowed_roles):
     """
     Décorateur personnalisé pour limiter l'accès à une vue à un rôle spécifique.
     Le Superuser a accès à toutes les vues.

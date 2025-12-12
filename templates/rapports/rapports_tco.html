@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Rapport TCO (Coût Total de Possession){% endblock %}
+{% block page_title %}Rapport TCO par Véhicule{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h4 class="text-primary"><i class="fas fa-chart-pie me-2"></i> Analyse du Coût Total de Possession (TCO)</h4>
+        <p class="text-muted">Aperçu des dépenses cumulées par véhicule (Carburant, Maintenance, Assurances...).</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>Matricule</th>
+                <th>Marque/Modèle</th>
+                <th>Coût Carburant (€)</th>
+                <th>Coût Maintenance (€)</th>
+                <th>Coût Total (TCO) (€)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for rapport in tco_rapport %}
+            <tr>
+                <td><strong>{{ rapport.vehicule__matricule }}</strong></td>
+                <td>{{ rapport.vehicule__marque }} {{ rapport.vehicule__modele }}</td>
+                <td>{{ rapport.cout_carburant|default:"0.00"|floatformat:2 }}</td>
+                <td>{{ rapport.cout_maintenance|default:"0.00"|floatformat:2 }}</td>
+                <td><strong class="text-danger">{{ rapport.tco_total|default:"0.00"|floatformat:2 }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">Aucune donnée de TCO disponible.</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

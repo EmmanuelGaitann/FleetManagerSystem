@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'maintenance.apps.MaintenanceConfig',
     'fournisseurs.apps.FournisseursConfig',
     'carburant.apps.CarburantConfig',
+    'rapports.apps.RapportsConfig',
 
     # AJOUTEZ L'APPLICATION 'users' SI VOUS L'AVEZ RENOMMÉE EN 'utilisateurs'
     # Sinon, assurez-vous que le nom ici correspond à votre dossier d'application (e.g., 'users' ou 'utilisateurs')
