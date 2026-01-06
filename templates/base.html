@@ -147,9 +147,10 @@
             <i class="fas fa-truck-moving text-warning"></i> FMS
         </div>
 
-        <!-- MENU -->
+        <!-- MENU PRINCIPAL -->
         <div>
 
+            <!-- Liens communs à tous les utilisateurs connectés -->
             <a href="{% url 'dashboard' %}"
                class="list-group-item-menu {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="fas fa-chart-line"></i> Tableau de bord
@@ -160,84 +161,157 @@
                 <i class="fas fa-bell"></i> Alertes & Échéances
             </a>
 
-            {% if user.role.nom == 'Gestionnaire Flotte' or user.is_superuser %}
+            {# ===================================================== #}
+            {#  ESPACE GESTIONNAIRE / ADMIN : modules métier        #}
+            {# ===================================================== #}
+            {% if user.is_superuser or user.role.nom == 'Gestionnaire Flotte' or user.role.nom == 'Administrateur Système' %}
 
-            <!-- FLOTTE -->
+            <!-- Gestion de la flotte -->
             <a class="list-group-item-menu {% if 'vehicule' in request.path or 'conducteur' in request.path or 'affectation' in request.path %}active{% endif %}"
-               href="#flotte" data-bs-toggle="collapse">
+               href="#flotteSubMenu" data-bs-toggle="collapse">
                 <i class="fas fa-truck-moving"></i> Gestion de la flotte
                 <i class="fas fa-chevron-down ms-auto"></i>
             </a>
-            
-            <div id="flotte"
-                 class="collapse collapse-sub-menu {% if 'vehicule' in request.path or 'conducteur' in request.path or 'affectation' in request.path %}show{% endif %}">
 
-                <a href="{% url 'vehicule_list' %}" class="{% if 'vehicule' in request.path %}active{% endif %}">
+            <div id="flotteSubMenu"
+                 class="collapse collapse-sub-menu {% if 'vehicule' in request.path or 'conducteur' in request.path or 'affectation' in request.path %}show{% endif %}">
+                <a href="{% url 'vehicule_list' %}"
+                   class="{% if 'vehicule' in request.path %}active{% endif %}">
                     Véhicules
                 </a>
-
-                <a href="{% url 'conducteur_list' %}" class="{% if 'conducteur' in request.path %}active{% endif %}">
+                <a href="{% url 'conducteur_list' %}"
+                   class="{% if 'conducteur' in request.path %}active{% endif %}">
                     Conducteurs
                 </a>
-
-                <a href="{% url 'affectation_list' %}" class="{% if 'affectation' in request.path %}active{% endif %}">
+                <a href="{% url 'affectation_list' %}"
+                   class="{% if 'affectation' in request.path %}active{% endif %}">
                     Affectations
                 </a>
             </div>
 
-            <!-- DOCS -->
-            <a class="list-group-item-menu {% if 'assurance' in request.path or 'taxes' in request.path or 'visites' in request.path %}active{% endif %}"
-               href="#docs" data-bs-toggle="collapse">
+            <!-- Documents & conformité : Assurances / Taxes / Visites -->
+            <a class="list-group-item-menu {% if 'assurance' in request.path or 'taxe' in request.path or 'visite' in request.path %}active{% endif %}"
+               href="#docsSubMenu" data-bs-toggle="collapse">
                 <i class="fas fa-file-invoice"></i> Documents & conformité
                 <i class="fas fa-chevron-down ms-auto"></i>
             </a>
 
-            <div id="docs"
-                 class="collapse collapse-sub-menu {% if 'assurance' in request.path or 'taxes' in request.path or 'visites' in request.path %}show{% endif %}">
-
-                <a href="{% url 'assurance_list' %}" class="{% if 'assurance' in request.path %}active{% endif %}">
+            <div id="docsSubMenu"
+                 class="collapse collapse-sub-menu {% if 'assurance' in request.path or 'taxe' in request.path or 'visite' in request.path %}show{% endif %}">
+                <a href="{% url 'assurance_list' %}"
+                   class="{% if 'assurance' in request.path %}active{% endif %}">
                     Assurances
                 </a>
-
-                <a href="{% url 'taxe_list' %}" class="{% if 'taxes' in request.path %}active{% endif %}">
-                    Taxes circulation
+                <a href="{% url 'taxe_list' %}"
+                   class="{% if 'taxe' in request.path %}active{% endif %}">
+                    Taxes de circulation
                 </a>
-
-                <a href="{% url 'visite_list' %}" class="{% if 'visites' in request.path %}active{% endif %}">
+                <a href="{% url 'visite_list' %}"
+                   class="{% if 'visite' in request.path %}active{% endif %}">
                     Visites techniques
                 </a>
             </div>
 
-            <a class="list-group-item-menu {% if 'departement' in request.path or 'ravitaillement' in request.path %}active{% endif %}"
-               href="#config" data-bs-toggle="collapse">
-                <i class="fas fa-cogs"></i> Opérations & configuration
+            <!-- Maintenance : Entretiens + Anomalies -->
+            <a class="list-group-item-menu {% if 'entretien' in request.path or 'anomalie' in request.path %}active{% endif %}"
+               href="#maintenanceSubMenu" data-bs-toggle="collapse">
+                <i class="fas fa-wrench"></i> Maintenance
                 <i class="fas fa-chevron-down ms-auto"></i>
             </a>
 
-            <div id="config"
-                 class="collapse collapse-sub-menu {% if 'departement' in request.path or 'ravitaillement' in request.path %}show{% endif %}">
-
-                <a href="{% url 'ravitaillement_list' %}" class="{% if 'ravitaillement' in request.path %}active{% endif %}">
-                    Ravitaillements
+            <div id="maintenanceSubMenu"
+                 class="collapse collapse-sub-menu {% if 'entretien' in request.path or 'anomalie' in request.path %}show{% endif %}">
+                <a href="{% url 'entretien_list' %}"
+                   class="{% if 'entretien' in request.path %}active{% endif %}">
+                    Entretiens
                 </a>
-
-                <a href="{% url 'departement_list' %}" class="{% if 'departement' in request.path %}active{% endif %}">
-                    Départements
+                <a href="{% url 'anomalie_list' %}"
+                   class="{% if 'anomalie' in request.path %}active{% endif %}">
+                    Anomalies
                 </a>
             </div>
 
+            <!-- Carburant -->
+            <a class="list-group-item-menu {% if 'ravitaillement' in request.path %}active{% endif %}"
+               href="#carburantSubMenu" data-bs-toggle="collapse">
+                <i class="fas fa-gas-pump"></i> Carburant
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+
+            <div id="carburantSubMenu"
+                 class="collapse collapse-sub-menu {% if 'ravitaillement' in request.path %}show{% endif %}">
+                <a href="{% url 'ravitaillement_list' %}"
+                   class="{% if 'ravitaillement' in request.path %}active{% endif %}">
+                    Ravitaillements
+                </a>
+            </div>
+
+            <!-- Fournisseurs -->
+            <a class="list-group-item-menu {% if 'fournisseur' in request.path or 'piece' in request.path %}active{% endif %}"
+               href="#fournisseurSubMenu" data-bs-toggle="collapse">
+                <i class="fas fa-handshake"></i> Fournisseurs
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+
+            <div id="fournisseurSubMenu"
+                 class="collapse collapse-sub-menu {% if 'fournisseur' in request.path or 'piece' in request.path %}show{% endif %}">
+                <a href="{% url 'fournisseur_list' %}"
+                   class="{% if 'fournisseur' in request.path %}active{% endif %}">
+                    Fournisseurs
+                </a>
+                <a href="{% url 'piece_list' %}"
+                   class="{% if 'piece' in request.path %}active{% endif %}">
+                    Pièces & consommables
+                </a>
+            </div>
+
+            <!-- Rapports & Statistiques -->
+            <a class="list-group-item-menu {% if request.resolver_match.url_name == 'rapports_tco' or request.resolver_match.url_name == 'rapports_performance' %}active{% endif %}"
+               href="#reportSubMenu" data-bs-toggle="collapse">
+                <i class="fas fa-chart-pie"></i> Rapports & Statistiques
+                <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+
+            <div id="reportSubMenu"
+                 class="collapse collapse-sub-menu {% if request.resolver_match.url_name == 'rapports_tco' or request.resolver_match.url_name == 'rapports_performance' %}show{% endif %}">
+                <a href="{% url 'rapports_tco' %}"
+                   class="{% if request.resolver_match.url_name == 'rapports_tco' %}active{% endif %}">
+                    Coûts & TCO
+                </a>
+                <a href="{% url 'rapports_performance' %}"
+                   class="{% if request.resolver_match.url_name == 'rapports_performance' %}active{% endif %}">
+                    Performance flotte
+                </a>
+            </div>
 
             {% endif %}
 
-            {% if user.role.nom == 'Chauffeur/Opérateur' %}
+            {# ================================================ #}
+            {#  ESPACE ADMIN : gestion des utilisateurs         #}
+            {# ================================================ #}
+            {% if user.is_superuser or user.role.nom == 'Administrateur Système' %}
+            <div class="text-light small mt-3 mb-2">Administration</div>
+
+            <a href="{% url 'user_create' %}"
+               class="list-group-item-menu {% if request.resolver_match.url_name == 'user_create' %}active{% endif %}">
+                <i class="fas fa-users-cog"></i> Créer un utilisateur
+            </a>
+            {% endif %}
+
+            {# ================================================ #}
+            {#  ESPACE CHAUFFEUR / OPÉRATEUR                   #}
+            {# ================================================ #}
+            {% if user.role.nom == 'Chauffeur/Opérateur' and not user.is_superuser and user.role.nom != 'Gestionnaire Flotte' %}
             <div class="text-light small mt-3 mb-2">Espace opérateur</div>
 
-            <a class="list-group-item-menu">
-                <i class="fas fa-exclamation-triangle"></i> Signaler anomalie
+            <a href="{% url 'anomalie_list' %}"
+               class="list-group-item-menu {% if request.resolver_match.url_name == 'anomalie_list' %}active{% endif %}">
+                <i class="fas fa-exclamation-triangle"></i> Mes anomalies
             </a>
 
-            <a href="{% url 'ravitaillement_list' %}" class="list-group-item-menu">
-                <i class="fas fa-gas-pump"></i> Déclarer ravitaillement
+            <a href="{% url 'anomalie_create' %}"
+               class="list-group-item-menu {% if request.resolver_match.url_name == 'anomalie_create' %}active{% endif %}">
+                <i class="fas fa-plus-circle"></i> Signaler une anomalie
             </a>
             {% endif %}
 
@@ -261,20 +335,17 @@
                 <div class="avatar">{{ user.username|slice:":1"|upper }}</div>
                 <form action="{% url 'logout' %}" method="post" style="display: inline;">
                     {% csrf_token %}
-
                     <button type="submit" style="
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        /* Maintenir le style de votre menu */
-        color: red;
-        text-decoration: red;
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        cursor: pointer;
+                        color: red;
+                        text-decoration: red;
                     ">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
                     </button>
                 </form>
-
             </div>
             {% endif %}
         </nav>
@@ -284,11 +355,9 @@
             {% block content %}{% endblock %}
         </div>
 
-
     </div>
 
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
