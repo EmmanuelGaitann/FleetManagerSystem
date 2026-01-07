@@ -1,20 +1,26 @@
-# /rapports/views.py
+import csv
+from django.http import HttpResponse
+
 from django.shortcuts import render
-from django.db.models import Sum, F, Q
-from django.utils import timezone
-from datetime import timedelta
 from .models import SimulationTrajet
 from .forms import SimulationTrajetForm
 from decimal import Decimal
 from .models import AlerteSysteme
 from .services import generer_alertes_echeances
-
-from flotte.views import role_required # Votre décorateur de sécurité
-
-# IMPORTS DES MODÈLES NÉCESSAIRES (Correction du NameError ici)
+from django.db.models import Sum, F, Q, Min, Max
+from django.db.models.functions import TruncMonth
+from django.utils import timezone
+from datetime import timedelta
+from flotte.views import role_required
 from flotte.models import Vehicule
 from carburant.models import Ravitaillement
-from maintenance.models import Entretien, Assurance, TaxeCirculation, VisiteTechnique
+from maintenance.models import (
+    Entretien,
+    Assurance,
+    TaxeCirculation,
+    VisiteTechnique,
+    Anomalie,
+)
 
 # ==========================================================
 # 1. RAPPORT TCO (Coût Total de Possession)
@@ -200,7 +206,7 @@ def alerte_list(request):
     }
     return render(request, 'rapports/alerte_list.html', context)
 # ==========================================================
-# 3. MODULE 5 : SIMULATION DE TRAJET
+#  MODULE : SIMULATION DE TRAJET
 # ==========================================================
 
 @role_required('Gestionnaire Flotte')
@@ -266,3 +272,178 @@ def alertes_echeances(request):
         "alertes": alertes,
         "title": "Alertes d’échéances",
     })
+
+# ==========================================================
+# RAPPORT D'UTILISATION (Kilométrage par mois)
+# ==========================================================
+
+@role_required('Gestionnaire Flotte')
+def rapports_utilisation(request):
+    """
+    Rapport d'utilisation :
+    - Affiche, par véhicule et par mois, le kilométrage parcouru.
+    - Basé sur les relevés de carburant (Ravitaillement.kilometrage).
+    """
+    # 1) On prend tous les ravitaillements, groupés par véhicule + mois
+    ravitaillements = (
+        Ravitaillement.objects
+        .annotate(mois=TruncMonth('date_plein'))
+        .values('vehicule__matricule', 'vehicule__marque', 'vehicule__modele', 'mois')
+        .annotate(
+            km_min=Min('kilometrage'),
+            km_max=Max('kilometrage'),
+        )
+        .order_by('vehicule__matricule', 'mois')
+    )
+
+    utilisation_data = []
+
+    for item in ravitaillements:
+        km_min = item['km_min'] or 0
+        km_max = item['km_max'] or 0
+        km_parcourus = km_max - km_min if km_max and km_min else 0
+
+        utilisation_data.append({
+            'vehicule__matricule': item['vehicule__matricule'],
+            'vehicule__marque': item['vehicule__marque'],
+            'vehicule__modele': item['vehicule__modele'],
+            'mois': item['mois'],
+            'km_min': km_min,
+            'km_max': km_max,
+            'km_parcourus': km_parcourus,
+        })
+
+    context = {
+        'utilisation_data': utilisation_data,
+        'title': 'Rapport d’utilisation',
+    }
+    return render(request, 'rapports/rapports_utilisation.html', context)
+
+
+@role_required('Gestionnaire Flotte')
+def export_utilisation_csv(request):
+    """
+    Exporte le rapport d'utilisation (km/mois par véhicule) au format CSV.
+    Ouvrable directement avec Excel.
+    """
+    # Même logique que dans rapports_utilisation
+    ravitaillements = (
+        Ravitaillement.objects
+        .annotate(mois=TruncMonth('date_plein'))
+        .values('vehicule__matricule', 'vehicule__marque', 'vehicule__modele', 'mois')
+        .annotate(
+            km_min=Min('kilometrage'),
+            km_max=Max('kilometrage'),
+        )
+        .order_by('vehicule__matricule', 'mois')
+    )
+
+    utilisation_data = []
+
+    for item in ravitaillements:
+        km_min = item['km_min'] or 0
+        km_max = item['km_max'] or 0
+        km_parcourus = km_max - km_min if km_max and km_min else 0
+
+        utilisation_data.append({
+            'vehicule__matricule': item['vehicule__matricule'],
+            'vehicule__marque': item['vehicule__marque'],
+            'vehicule__modele': item['vehicule__modele'],
+            'mois': item['mois'],
+            'km_min': km_min,
+            'km_max': km_max,
+            'km_parcourus': km_parcourus,
+        })
+
+    # Préparation de la réponse CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="rapport_utilisation.csv"'
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Matricule',
+        'Marque',
+        'Modèle',
+        'Mois',
+        'Km min',
+        'Km max',
+        'Km parcourus',
+    ])
+
+    for item in utilisation_data:
+        writer.writerow([
+            item['vehicule__matricule'],
+            item['vehicule__marque'],
+            item['vehicule__modele'],
+            item['mois'].strftime('%m/%Y') if item['mois'] else '',
+            item['km_min'],
+            item['km_max'],
+            item['km_parcourus'],
+        ])
+
+    return response
+
+# ==========================================================
+# RAPPORT D'ANOMALIES
+# ==========================================================
+
+@role_required('Gestionnaire Flotte')
+def rapports_anomalies(request):
+    """
+    Rapport d'anomalies :
+    - Liste toutes les anomalies déclarées.
+    - Permet de filtrer rapidement visuellement par véhicule, type, statut.
+    """
+    anomalies = (
+        Anomalie.objects
+        .select_related('vehicule', 'conducteur')
+        .order_by('-date_declaration')
+    )
+
+    context = {
+        'anomalies': anomalies,
+        'title': 'Rapport d’anomalies',
+    }
+    return render(request, 'rapports/rapports_anomalies.html', context)
+
+@role_required('Gestionnaire Flotte')
+def export_anomalies_csv(request):
+    """
+    Exporte le rapport d'anomalies au format CSV.
+    """
+    anomalies = (
+        Anomalie.objects
+        .select_related('vehicule', 'conducteur')
+        .order_by('-date_declaration')
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="rapport_anomalies.csv"'
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Véhicule',
+        'Conducteur',
+        'Type anomalie',
+        'Statut',
+        'Date déclaration',
+        'Description',
+    ])
+
+    for a in anomalies:
+        conducteur_nom = ""
+        if a.conducteur:
+            nom = getattr(a.conducteur, 'nom', '') or ''
+            prenom = getattr(a.conducteur, 'prenom', '') or ''
+            conducteur_nom = f"{nom} {prenom}".strip()
+
+        writer.writerow([
+            getattr(a.vehicule, 'matricule', '') if a.vehicule else '',
+            conducteur_nom,
+            getattr(a, 'type_anomalie', ''),
+            getattr(a, 'statut', ''),
+            a.date_declaration.strftime('%d/%m/%Y %H:%M') if a.date_declaration else '',
+            (a.description or '').replace('\n', ' ').strip(),
+        ])
+
+    return response

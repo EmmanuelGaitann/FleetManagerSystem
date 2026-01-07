@@ -12,5 +12,11 @@ urlpatterns = [
     # Simulation de trajet (Module 5)
     path('simulation-trajet/', views.simulation_trajet, name='simulation_trajet'),
     path("alertes-echeances/", views.alertes_echeances, name="alertes_echeances"),
+    path('utilisation/', views.rapports_utilisation, name='rapports_utilisation'),
+    path('anomalies/', views.rapports_anomalies, name='rapports_anomalies'),
+    path('utilisation/export-csv/', views.export_utilisation_csv, name='export_utilisation_csv'),
+    path('anomalies/export-csv/', views.export_anomalies_csv, name='export_anomalies_csv'),
+
+
 
 ]

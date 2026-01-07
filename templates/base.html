@@ -273,22 +273,32 @@
                 <i class="fas fa-chevron-down ms-auto"></i>
             </a>
 
-            <div id="reportSubMenu"
-                 class="collapse collapse-sub-menu {% if request.resolver_match.url_name == 'rapports_tco' or request.resolver_match.url_name == 'rapports_performance' %}show{% endif %}">
-                <a href="{% url 'rapports_tco' %}"
-                   class="{% if request.resolver_match.url_name == 'rapports_tco' %}active{% endif %}">
+            <div id="reportSubMenu" class="collapse collapse-sub-menu show">
+                <a href="{% url 'rapports_tco' %}">
                     Coûts & TCO
                 </a>
-                <a href="{% url 'rapports_performance' %}"
-                   class="{% if request.resolver_match.url_name == 'rapports_performance' %}active{% endif %}">
+
+                <a href="{% url 'rapports_performance' %}">
                     Performance flotte
                 </a>
-                <a href="{% url 'simulation_trajet' %}"
-                   class="{% if request.resolver_match.url_name == 'simulation_trajet' %}active{% endif %}">
-                    Simulation de trajet
+
+                <a href="{% url 'rapports_utilisation' %}">
+                    Utilisation (km/mois)
                 </a>
 
+                <a href="{% url 'rapports_anomalies' %}">
+                    Rapport d’anomalies
+                </a>
+
+                <a href="{% url 'alertes_echeances' %}">
+                    Alertes d’échéances
+                </a>
+
+                <a href="{% url 'simulation_trajet' %}">
+                    Simulation de trajet
+                </a>
             </div>
+
 
             {% endif %}
 

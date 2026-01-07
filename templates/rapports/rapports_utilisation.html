@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Rapport d’utilisation{% endblock %}
+{% block page_title %}Rapport d’utilisation (km/mois){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h4 class="text-info">
+            <i class="fas fa-road me-2"></i>
+            Utilisation des véhicules (par mois)
+        </h4>
+
+
+        <p class="text-muted">
+            Kilométrage parcouru par véhicule et par mois, basé sur les relevés de carburant.
+        </p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="mb-3 text-end">
+            <a href="{% url 'export_utilisation_csv' %}" class="btn btn-sm btn-outline-secondary">
+                Exporter en Excel / CSV
+            </a>
+        </div>
+        <table class="table table-striped table-hover table-sm">
+            <thead>
+            <tr>
+                <th>Véhicule</th>
+                <th>Mois</th>
+                <th>Km min</th>
+                <th>Km max</th>
+                <th>Km parcourus</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in utilisation_data %}
+            <tr>
+                <td>
+                    {{ item.vehicule__matricule }}
+                    <br>
+                    <small class="text-muted">
+                        {{ item.vehicule__marque }} {{ item.vehicule__modele }}
+                    </small>
+                </td>
+                <td>{{ item.mois|date:"m/Y" }}</td>
+                <td>{{ item.km_min }}</td>
+                <td>{{ item.km_max }}</td>
+                <td><strong>{{ item.km_parcourus }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    Aucune donnée d’utilisation disponible.
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

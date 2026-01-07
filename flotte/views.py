@@ -11,6 +11,14 @@ from .models import Departement, Vehicule, Conducteur, Affectation, Assurance, T
 # Imports des Formulaires (Assumant qu'ils sont définis dans flotte/forms.py)
 from .forms import DepartementForm, VehiculeForm, ConducteurForm, AffectationForm
 
+from django.utils import timezone
+from carburant.models import Ravitaillement
+from maintenance.models import Entretien, Anomalie
+
+try:
+    from rapports.models import AlerteSysteme
+except Exception:
+    AlerteSysteme = None
 
 # -----------------------------------------------------------
 # Décorateur RBAC (Contrôle d'Accès basé sur les Rôles)
@@ -50,20 +58,69 @@ def role_required(*allowed_roles):
 # -----------------------------------------------------------
 # Vues Générales
 # -----------------------------------------------------------
-
 @login_required
 def dashboard_view(request):
-    """Affiche le tableau de bord principal après connexion."""
+    """Affiche le tableau de bord principal après connexion avec les KPI FMS."""
 
-    # Assurez-vous que l'utilisateur a un rôle ou est superuser
-    user_role_name = request.user.role.nom if hasattr(request.user, 'role') and request.user.role else 'Invité'
+    # Rôle utilisateur (affiché dans le badge vert)
+    user_role_name = (
+        request.user.role.nom
+        if hasattr(request.user, "role") and getattr(request.user, "role", None)
+        else "Invité"
+    )
+
+    # Date du jour et début du mois courant
+    today = timezone.now().date()
+    first_day_month = today.replace(day=1)
+
+    # 1) KPI de base
+    total_vehicules = Vehicule.objects.count()
+    total_conducteurs = Conducteur.objects.count()
+
+    # 2) Affectations en cours (date_fin vide ou dans le futur)
+    affectations_qs = Affectation.objects.filter(
+        Q(date_fin__isnull=True) | Q(date_fin__gte=today)
+    )
+
+    affectations_en_cours = affectations_qs.count()
+
+    # Dernière affectation en cours (pour le bloc "Affectation actuelle")
+    affectation_actuelle = (
+        affectations_qs.select_related("vehicule", "conducteur")
+        .order_by("-date_debut")
+        .first()
+    )
+
+    # 3) Alertes urgentes (non résolues)
+    alertes_urgentes = 0
+    if AlerteSysteme is not None:
+        try:
+            alertes_urgentes = (
+                AlerteSysteme.objects.filter(est_resolue=False).count()
+            )
+        except Exception:
+            alertes_urgentes = 0
+
+    # (Tu pourras plus tard ajouter ici :
+    #  - total carburant du mois,
+    #  - coût maintenance du mois, etc.)
 
     context = {
-        'user_role': user_role_name,
-        'title': 'Tableau de Bord FMS'
-        # Ajoutez ici la logique de KPI si l'utilisateur est Gestionnaire Flotte
+        "user_role": user_role_name,
+        "title": "Tableau de Bord FMS",
+
+        # KPI utilisés dans dashboard.html
+        "total_vehicules": total_vehicules,
+        "total_conducteurs": total_conducteurs,
+        "affectations_en_cours": affectations_en_cours,
+        "affectation_actuelle": affectation_actuelle,
+        "alertes": {
+            "total_urgentes": alertes_urgentes,
+        },
     }
-    return render(request, 'dashboard.html', context)
+
+    return render(request, "dashboard.html", context)
+
 
 
 # -----------------------------------------------------------
