@@ -1,8 +1,24 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}Simulation de Trajet{% endblock %}
 
 {% block content %}
+<!-- Leaflet CSS directement ici pour être sûr qu'il est chargé -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""/>
+
+<style>
+    #map-cameroun {
+        width: 100%;
+        height: 400px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 1rem;
+    }
+</style>
+
 <div class="container-fluid">
     <h1 class="mb-4">Simulation de Trajet</h1>
 
@@ -13,7 +29,8 @@
     {% endif %}
 
     <div class="row">
-        <div class="col-md-5">
+        <!-- COLONNE FORMULAIRE -->
+        <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-header">
                     Nouvelle simulation
@@ -25,26 +42,72 @@
                             <label class="form-label">Véhicule (optionnel)</label>
                             {{ form.vehicule }}
                         </div>
+
+                        <!-- SELECT villes départ / arrivée -->
                         <div class="mb-3">
-                            <label class="form-label">Point de départ</label>
-                            {{ form.point_depart }}
+                            <label class="form-label">Point de départ (ville au Cameroun)</label>
+                            <select name="point_depart" class="form-select" id="id_point_depart">
+                                <option value="">Sélectionner une ville</option>
+                                <option value="Douala">Douala</option>
+                                <option value="Yaoundé">Yaoundé</option>
+                                <option value="Garoua">Garoua</option>
+                                <option value="Maroua">Maroua</option>
+                                <option value="Bafoussam">Bafoussam</option>
+                                <option value="Bamenda">Bamenda</option>
+                                <option value="Ngaoundéré">Ngaoundéré</option>
+                                <option value="Bertoua">Bertoua</option>
+                                <option value="Ebolowa">Ebolowa</option>
+                                <option value="Kribi">Kribi</option>
+                                <option value="Limbe">Limbe</option>
+                                <option value="Buea">Buea</option>
+                                <option value="Kumba">Kumba</option>
+                            </select>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Point d’arrivée</label>
-                            {{ form.point_arrivee }}
+                            <label class="form-label">Point d’arrivée (ville au Cameroun)</label>
+                            <select name="point_arrivee" class="form-select" id="id_point_arrivee">
+                                <option value="">Sélectionner une ville</option>
+                                <option value="Douala">Douala</option>
+                                <option value="Yaoundé">Yaoundé</option>
+                                <option value="Garoua">Garoua</option>
+                                <option value="Maroua">Maroua</option>
+                                <option value="Bafoussam">Bafoussam</option>
+                                <option value="Bamenda">Bamenda</option>
+                                <option value="Ngaoundéré">Ngaoundéré</option>
+                                <option value="Bertoua">Bertoua</option>
+                                <option value="Ebolowa">Ebolowa</option>
+                                <option value="Kribi">Kribi</option>
+                                <option value="Limbe">Limbe</option>
+                                <option value="Buea">Buea</option>
+                                <option value="Kumba">Kumba</option>
+                            </select>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Distance (km)</label>
+                            <label class="form-label">
+                                Distance (km)
+                                <small class="text-muted">(préremplie automatiquement)</small>
+                            </label>
                             {{ form.distance_km }}
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Durée estimée (minutes)</label>
+                            <label class="form-label">
+                                Durée estimée (minutes)
+                                <small class="text-muted">(préremplie automatiquement)</small>
+                            </label>
                             {{ form.duree_minutes }}
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Consommation moyenne (L/100 km)</label>
+                            <label class="form-label">
+                                Consommation moyenne (L/100 km)
+                                <small class="text-muted">(préremplie automatiquement si vide)</small>
+                            </label>
                             {{ form.consommation_moyenne_l_100 }}
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Prix du carburant (par Litre)</label>
                             {{ form.prix_carburant_litre }}
@@ -58,7 +121,22 @@
             </div>
         </div>
 
-        <div class="col-md-7">
+        <!-- COLONNE CARTE + RESULTATS -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    Carte du Cameroun
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        La carte est centrée sur le Cameroun. Lorsque vous sélectionnez une ville de départ et une
+                        ville d’arrivée, les marqueurs sont positionnés automatiquement, la distance, la durée et
+                        la consommation moyenne sont estimées.
+                    </p>
+                    <div id="map-cameroun"></div>
+                </div>
+            </div>
+
             {% if derniere_simulation %}
             <div class="card mb-4">
                 <div class="card-header">
@@ -113,4 +191,180 @@
         </div>
     </div>
 </div>
+
+<!-- Leaflet JS directement ici pour être sûr qu'il est chargé -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+<script>
+    // =======================
+    // 1. Initialisation carte
+    // =======================
+
+    // Centre approximatif du Cameroun
+    const centerCameroun = [7.3697, 12.3547];
+
+    const map = L.map('map-cameroun').setView(centerCameroun, 6);
+
+    // ONLINE : OpenStreetMap
+    const onlineTiles = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    // Pour OFFLINE plus tard, tu pourras remplacer cette URL par un serveur de tuiles local :
+    // const onlineTiles = 'http://localhost:8000/tiles/{z}/{x}/{y}.png';
+
+    L.tileLayer(onlineTiles, {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Limiter la carte au Cameroun (approx.)
+    const boundsCameroun = L.latLngBounds(
+        [1.5, 8],   // sud-ouest
+        [13.5, 16]  // nord-est
+    );
+    map.setMaxBounds(boundsCameroun);
+    map.on('drag', function () {
+        map.panInsideBounds(boundsCameroun, { animate: false });
+    });
+
+    // =======================
+    // 2. Villes du Cameroun
+    // =======================
+
+    const villesCameroun = [
+        { nom: 'Douala',      lat: 4.0511,  lng: 9.7679 },
+        { nom: 'Yaoundé',     lat: 3.8480,  lng: 11.5021 },
+        { nom: 'Garoua',      lat: 9.3000,  lng: 13.4000 },
+        { nom: 'Maroua',      lat: 10.5956, lng: 14.3247 },
+        { nom: 'Bafoussam',   lat: 5.4778,  lng: 10.4170 },
+        { nom: 'Bamenda',     lat: 5.9631,  lng: 10.1591 },
+        { nom: 'Ngaoundéré',  lat: 7.3277,  lng: 13.5847 },
+        { nom: 'Bertoua',     lat: 4.5833,  lng: 13.6833 },
+        { nom: 'Ebolowa',     lat: 2.9167,  lng: 11.1500 },
+        { nom: 'Kribi',       lat: 2.9402,  lng: 9.9100 },
+        { nom: 'Limbe',       lat: 4.0173,  lng: 9.2144 },
+        { nom: 'Buea',        lat: 4.1527,  lng: 9.2418 },
+        { nom: 'Kumba',       lat: 4.6363,  lng: 9.4469 }
+    ];
+
+    function trouverVille(nom) {
+        if (!nom) return null;
+        const nomNormalise = nom.toLowerCase();
+        return villesCameroun.find(v => v.nom.toLowerCase() === nomNormalise) || null;
+    }
+
+    // =======================
+    // 3. Marqueurs & champs
+    // =======================
+
+    let markerDepart = null;
+    let markerArrivee = null;
+
+    const selectDepart  = document.getElementById('id_point_depart');
+    const selectArrivee = document.getElementById('id_point_arrivee');
+    const inputDistance = document.querySelector('input[name="distance_km"]');
+    const inputDuree    = document.querySelector('input[name="duree_minutes"]');
+    const inputConso    = document.querySelector('input[name="consommation_moyenne_l_100"]');
+
+    function mettreAJourMarker(type) {
+        let select = (type === 'depart') ? selectDepart : selectArrivee;
+        let ville = trouverVille(select.value);
+
+        if (!ville) return;
+
+        const latlng = [ville.lat, ville.lng];
+
+        if (type === 'depart') {
+            if (markerDepart) {
+                markerDepart.setLatLng(latlng);
+            } else {
+                markerDepart = L.marker(latlng)
+                    .addTo(map)
+                    .bindPopup("Départ : " + ville.nom);
+            }
+            markerDepart.openPopup();
+        } else {
+            if (markerArrivee) {
+                markerArrivee.setLatLng(latlng);
+            } else {
+                markerArrivee = L.marker(latlng)
+                    .addTo(map)
+                    .bindPopup("Arrivée : " + ville.nom);
+            }
+            markerArrivee.openPopup();
+        }
+
+        // Adapter le zoom pour voir les deux points
+        const points = [];
+        if (markerDepart) points.push(markerDepart.getLatLng());
+        if (markerArrivee) points.push(markerArrivee.getLatLng());
+        if (points.length === 1) {
+            map.setView(points[0], 8);
+        } else if (points.length === 2) {
+            const group = L.latLngBounds(points);
+            map.fitBounds(group, { padding: [40, 40] });
+        }
+
+        // Calcul distance + durée + conso si les deux villes sont sélectionnées
+        if (markerDepart && markerArrivee && inputDistance) {
+            const d = calculerDistanceKm(
+                markerDepart.getLatLng().lat,
+                markerDepart.getLatLng().lng,
+                markerArrivee.getLatLng().lat,
+                markerArrivee.getLatLng().lng
+            );
+
+            // Distance (km)
+            inputDistance.value = d.toFixed(1);
+
+            // Durée estimée (minutes) avec vitesse moyenne 70 km/h
+            if (inputDuree) {
+                const SPEED_KM_H = 70;
+                const dureeMinutes = (d / SPEED_KM_H) * 60;
+                inputDuree.value = Math.round(dureeMinutes);
+            }
+
+            // Consommation moyenne : si vide, on met un 8.0 L/100 par défaut
+            if (inputConso && (!inputConso.value || inputConso.value === "0")) {
+                inputConso.value = "8.0";
+            }
+        }
+    }
+
+    // =======================
+    // 4. Calcul distance (Haversine)
+    // =======================
+
+    function calculerDistanceKm(lat1, lon1, lat2, lon2) {
+        const R = 6371; // rayon Terre en km
+        const toRad = x => x * Math.PI / 180;
+
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // =======================
+    // 5. Écoute des changements
+    // =======================
+
+    if (selectDepart) {
+        selectDepart.addEventListener('change', function () {
+            mettreAJourMarker('depart');
+        });
+    }
+    if (selectArrivee) {
+        selectArrivee.addEventListener('change', function () {
+            mettreAJourMarker('arrivee');
+        });
+    }
+</script>
 {% endblock %}
