@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Simulation de Trajet{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Simulation de Trajet</h1>
+
+    {% if message_succes %}
+    <div class="alert alert-success">
+        {{ message_succes }}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card mb-4">
+                <div class="card-header">
+                    Nouvelle simulation
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Véhicule (optionnel)</label>
+                            {{ form.vehicule }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Point de départ</label>
+                            {{ form.point_depart }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Point d’arrivée</label>
+                            {{ form.point_arrivee }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Distance (km)</label>
+                            {{ form.distance_km }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Durée estimée (minutes)</label>
+                            {{ form.duree_minutes }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Consommation moyenne (L/100 km)</label>
+                            {{ form.consommation_moyenne_l_100 }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prix du carburant (par Litre)</label>
+                            {{ form.prix_carburant_litre }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Lancer la simulation
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            {% if derniere_simulation %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    Résultat de la dernière simulation
+                </div>
+                <div class="card-body">
+                    <p><strong>Trajet :</strong> {{ derniere_simulation.point_depart }} → {{ derniere_simulation.point_arrivee }}</p>
+                    <p><strong>Distance :</strong> {{ derniere_simulation.distance_km }} km</p>
+                    <p><strong>Durée :</strong> {{ derniere_simulation.duree_minutes }} minutes</p>
+                    <p><strong>Consommation moyenne :</strong> {{ derniere_simulation.consommation_moyenne_l_100 }} L/100 km</p>
+                    <p><strong>Coût estimé :</strong> {{ derniere_simulation.cout_estime_carburant }} XAF</p>
+                    {% if derniere_simulation.vehicule %}
+                    <p><strong>Véhicule :</strong> {{ derniere_simulation.vehicule }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">
+                    Historique des dernières simulations
+                </div>
+                <div class="card-body">
+                    {% if simulations %}
+                    <table class="table table-striped table-sm">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Trajet</th>
+                            <th>Distance (km)</th>
+                            <th>Durée (min)</th>
+                            <th>Coût estimé</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for sim in simulations %}
+                        <tr>
+                            <td>{{ sim.date_simulation|date:"d/m/Y H:i" }}</td>
+                            <td>{{ sim.point_depart }} → {{ sim.point_arrivee }}</td>
+                            <td>{{ sim.distance_km }}</td>
+                            <td>{{ sim.duree_minutes }}</td>
+                            <td>{{ sim.cout_estime_carburant }} XAF</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>Aucune simulation enregistrée pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

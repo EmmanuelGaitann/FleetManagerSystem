@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Alertes d’échéances</h1>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Véhicule</th>
+        <th>Type</th>
+        <th>Message</th>
+        <th>Échéance</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for a in alertes %}
+    <tr>
+        <td>{{ a.vehicule }}</td>
+        <td>{{ a.get_type_alerte_display }}</td>
+        <td>{{ a.message }}</td>
+        <td>{{ a.date_echeance|date:"d/m/Y" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">Aucune alerte active 🎉</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

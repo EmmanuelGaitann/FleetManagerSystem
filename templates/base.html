@@ -156,10 +156,11 @@
                 <i class="fas fa-chart-line"></i> Tableau de bord
             </a>
 
-            <a href="{% url 'alerte_list' %}"
-               class="list-group-item-menu {% if request.resolver_match.url_name == 'alerte_list' %}active{% endif %}">
-                <i class="fas fa-bell"></i> Alertes & Échéances
+            <a href="{% url 'alertes_echeances' %}"
+               class="list-group-item-menu {% if request.resolver_match.url_name == 'alertes_echeances' %}active{% endif %}">
+                <i class="fas fa-bell"></i>Alertes d’échéances
             </a>
+
 
             {# ===================================================== #}
             {#  ESPACE GESTIONNAIRE / ADMIN : modules métier        #}
@@ -282,6 +283,11 @@
                    class="{% if request.resolver_match.url_name == 'rapports_performance' %}active{% endif %}">
                     Performance flotte
                 </a>
+                <a href="{% url 'simulation_trajet' %}"
+                   class="{% if request.resolver_match.url_name == 'simulation_trajet' %}active{% endif %}">
+                    Simulation de trajet
+                </a>
+
             </div>
 
             {% endif %}

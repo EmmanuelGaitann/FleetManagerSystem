@@ -196,3 +196,4 @@ class AlerteEmail(models.Model):
         managed = False
         db_table = 'alertes_email'
         verbose_name_plural = "Alertes E-mail"
+

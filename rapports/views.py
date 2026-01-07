@@ -3,6 +3,12 @@ from django.shortcuts import render
 from django.db.models import Sum, F, Q
 from django.utils import timezone
 from datetime import timedelta
+from .models import SimulationTrajet
+from .forms import SimulationTrajetForm
+from decimal import Decimal
+from .models import AlerteSysteme
+from .services import generer_alertes_echeances
+
 from flotte.views import role_required # Votre décorateur de sécurité
 
 # IMPORTS DES MODÈLES NÉCESSAIRES (Correction du NameError ici)
@@ -193,3 +199,70 @@ def alerte_list(request):
         'title': 'Liste des Alertes et Rappels',
     }
     return render(request, 'rapports/alerte_list.html', context)
+# ==========================================================
+# 3. MODULE 5 : SIMULATION DE TRAJET
+# ==========================================================
+
+@role_required('Gestionnaire Flotte')
+def simulation_trajet(request):
+    """
+    Vue de simulation de trajet (Module 5 du CDC).
+
+    Pour rester simple (sans clé API obligatoire) :
+    - L'utilisateur saisit point A, B, distance, durée, conso moyenne, prix du carburant.
+    - Le système calcule le coût estimé et sauvegarde la simulation.
+    - On affiche aussi l'historique des dernières simulations.
+    """
+    if request.method == 'POST':
+        form = SimulationTrajetForm(request.POST)
+        if form.is_valid():
+            simulation: SimulationTrajet = form.save(commit=False)
+            simulation.utilisateur = request.user
+
+            prix_carburant_litre = form.cleaned_data['prix_carburant_litre']
+            distance_km = simulation.distance_km
+            conso_l_100 = simulation.consommation_moyenne_l_100
+
+            # Algorithme simple : litres = distance * conso / 100
+            litres_estimes = (distance_km * conso_l_100) / Decimal('100')
+            cout_estime = litres_estimes * prix_carburant_litre
+
+            simulation.cout_estime_carburant = cout_estime
+            simulation.save()
+
+            # On prépare un formulaire vide pour une nouvelle simulation
+            form = SimulationTrajetForm()
+            message_succes = "Simulation enregistrée avec succès."
+
+            simulations = SimulationTrajet.objects.all()[:10]
+
+            context = {
+                'form': form,
+                'simulations': simulations,
+                'derniere_simulation': simulation,
+                'message_succes': message_succes,
+                'title': 'Simulation de Trajet',
+            }
+            return render(request, 'rapports/simulation_trajet.html', context)
+    else:
+        form = SimulationTrajetForm()
+
+    simulations = SimulationTrajet.objects.all()[:10]
+
+    context = {
+        'form': form,
+        'simulations': simulations,
+        'title': 'Simulation de Trajet',
+    }
+    return render(request, 'rapports/simulation_trajet.html', context)
+
+@role_required("Gestionnaire Flotte")
+def alertes_echeances(request):
+    generer_alertes_echeances()  # refresh auto quand on ouvre la page
+
+    alertes = AlerteSysteme.objects.filter(est_resolue=False).order_by("date_echeance")
+
+    return render(request, "rapports/alertes_echeances.html", {
+        "alertes": alertes,
+        "title": "Alertes d’échéances",
+    })
