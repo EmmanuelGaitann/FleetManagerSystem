@@ -464,3 +464,15 @@ def mes_affectations(request):
         "historique": historique,
     }
     return render(request, "flotte/mes_affectations.html", context)
+
+from django.contrib.auth.decorators import login_required
+
+@role_required('Chauffeur/Opérateur')
+def mobile_chauffeur_home(request):
+    """
+    Accueil mobile pour les chauffeurs :
+    gros boutons vers les fonctionnalités principales.
+    """
+    return render(request, "mobile/chauffeur_home.html", {
+        "title": "Espace Chauffeur (Mobile)"
+    })

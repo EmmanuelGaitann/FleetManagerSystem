@@ -42,7 +42,7 @@ urlpatterns = [
     path('affectations/modifier/<int:pk>/', views.affectation_update, name='affectation_update'),
     path('affectations/supprimer/<int:pk>/', views.affectation_delete, name='affectation_delete'),
     path('mes-affectations/', views.mes_affectations, name='mes_affectations'),
-
+    path('mobile/chauffeur/', views.mobile_chauffeur_home, name='mobile_chauffeur_home'),
     # --------------------------------------------------
     # 6. CRUD Rappels : Assurances (NOUVEAU)
     # --------------------------------------------------
