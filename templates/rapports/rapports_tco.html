@@ -1,44 +1,70 @@
 {% extends "base.html" %}
 
-{% block title %}Rapport TCO (Coût Total de Possession){% endblock %}
-{% block page_title %}Rapport TCO par Véhicule{% endblock %}
+{% block title %}Rapport Coûts par Véhicule{% endblock %}
+{% block page_title %}Rapport de Coûts par Véhicule (TCO){% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h4 class="text-primary"><i class="fas fa-chart-pie me-2"></i> Analyse du Coût Total de Possession (TCO)</h4>
-        <p class="text-muted">Aperçu des dépenses cumulées par véhicule (Carburant, Maintenance, Assurances...).</p>
-    </div>
-</div>
 
 <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        Synthèse des coûts par véhicule
+    </div>
     <div class="card-body">
-        <table class="table table-striped table-hover">
-            <thead>
-            <tr>
-                <th>Matricule</th>
-                <th>Marque/Modèle</th>
-                <th>Coût Carburant (€)</th>
-                <th>Coût Maintenance (€)</th>
-                <th>Coût Total (TCO) (€)</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for rapport in tco_rapport %}
-            <tr>
-                <td><strong>{{ rapport.vehicule__matricule }}</strong></td>
-                <td>{{ rapport.vehicule__marque }} {{ rapport.vehicule__modele }}</td>
-                <td>{{ rapport.cout_carburant|default:"0.00"|floatformat:2 }}</td>
-                <td>{{ rapport.cout_maintenance|default:"0.00"|floatformat:2 }}</td>
-                <td><strong class="text-danger">{{ rapport.tco_total|default:"0.00"|floatformat:2 }}</strong></td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">Aucune donnée de TCO disponible.</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+
+        {% if lignes %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-sm align-middle">
+                <thead>
+                <tr>
+                    <th>Matricule</th>
+                    <th>Marque / Modèle</th>
+                    <th class="text-end">Coût Carburant</th>
+                    <th class="text-end">Coût Maintenance</th>
+                    <th class="text-end">Km parcourus (estimés)</th>
+                    <th class="text-end">Coût / km</th>
+                    <th class="text-end">TCO Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in lignes %}
+                <tr>
+                    <td>{{ row.vehicule__matricule }}</td>
+                    <td>{{ row.vehicule__marque }} {{ row.vehicule__modele }}</td>
+                    <td class="text-end">
+                        {{ row.cout_carburant|floatformat:0 }} FCFA
+                    </td>
+                    <td class="text-end">
+                        {{ row.cout_maintenance|floatformat:0 }} FCFA
+                    </td>
+                    <td class="text-end">
+                        {% if row.km_total %}
+                        {{ row.km_total }} km
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if row.cout_par_km %}
+                        {{ row.cout_par_km|floatformat:2 }} FCFA/km
+                        {% else %}
+                        <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end fw-bold">
+                        {{ row.tco_total|floatformat:0 }} FCFA
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">
+            Aucun coût enregistré pour le moment. Ajoutez des ravitaillements et des entretiens
+            pour voir le TCO apparaître ici.
+        </p>
+        {% endif %}
+
     </div>
 </div>
 

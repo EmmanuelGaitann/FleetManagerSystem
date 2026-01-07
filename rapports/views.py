@@ -7,7 +7,7 @@ from .forms import SimulationTrajetForm
 from decimal import Decimal
 from .models import AlerteSysteme
 from .services import generer_alertes_echeances
-from django.db.models import Sum, F, Q, Min, Max
+from django.db.models import Sum, F, Q, Max, Min
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 from datetime import timedelta
@@ -22,59 +22,123 @@ from maintenance.models import (
     Anomalie,
 )
 
+
 # ==========================================================
 # 1. RAPPORT TCO (Coût Total de Possession)
 # ==========================================================
 
 @role_required('Gestionnaire Flotte')
 def rapports_tco(request):
-    # 1. Obtenir les IDs de tous les véhicules
-    vehicules_ids = Vehicule.objects.values_list('id', flat=True)
+    """
+    Rapport de Coûts par Véhicule (TCO)
+    - Total carburant
+    - Total maintenance
+    - Kilométrage estimé
+    - Coût / km
+    - Coût total (TCO)
+    """
 
-    # 2. Calculer le Coût Carburant par véhicule
-    # Nous calculons le total de la dépense: quantite_litres * prix_unitaire
-    cout_carburant = Ravitaillement.objects.filter(vehicule_id__in=vehicules_ids).values('vehicule__matricule', 'vehicule__marque', 'vehicule__modele').annotate(
-        cout_carburant=Sum(F('quantite_litres') * F('prix_unitaire'))
-    ).order_by('vehicule__matricule')
+    # -------------------------------
+    # 1) Coûts carburant par véhicule
+    # -------------------------------
+    carburant_agg = (
+        Ravitaillement.objects
+        .values('vehicule_id',
+                'vehicule__matricule',
+                'vehicule__marque',
+                'vehicule__modele')
+        .annotate(
+            cout_carburant=Sum(F('quantite_litres') * F('prix_unitaire')),
+            km_min=Min('kilometrage'),
+            km_max=Max('kilometrage'),
+        )
+    )
 
-    # 3. Calculer le Coût Maintenance par véhicule
-    cout_maintenance = Entretien.objects.filter(vehicule_id__in=vehicules_ids).values('vehicule__matricule', 'vehicule__marque', 'vehicule__modele').annotate(
-        cout_maintenance=Sum(F('cout_total'))
-    ).order_by('vehicule__matricule')
-
-    # 4. Fusionner les résultats
     tco_data = {}
 
-    for item in cout_carburant:
-        matricule = item['vehicule__matricule']
-        tco_data[matricule] = {
-            'vehicule__matricule': matricule,
-            'vehicule__marque': item['vehicule__marque'],
-            'vehicule__modele': item['vehicule__modele'],
-            'cout_carburant': item['cout_carburant'] or 0,
+    for row in carburant_agg:
+        veh_id = row['vehicule_id']
+        km_min = row['km_min']
+        km_max = row['km_max']
+
+        km_total = 0
+        if km_min is not None and km_max is not None and km_max > km_min:
+            km_total = km_max - km_min
+
+        tco_data[veh_id] = {
+            'vehicule__matricule': row['vehicule__matricule'],
+            'vehicule__marque': row['vehicule__marque'],
+            'vehicule__modele': row['vehicule__modele'],
+            'cout_carburant': row['cout_carburant'] or 0,
             'cout_maintenance': 0,
-            'tco_total': item['cout_carburant'] or 0,
+            'km_total': km_total,
         }
 
-    for item in cout_maintenance:
-        matricule = item['vehicule__matricule']
-        if matricule in tco_data:
-            tco_data[matricule]['cout_maintenance'] = item['cout_maintenance'] or 0
-            tco_data[matricule]['tco_total'] += item['cout_maintenance'] or 0
+    # --------------------------------
+    # 2) Coûts maintenance par véhicule
+    # --------------------------------
+    maintenance_agg = (
+        Entretien.objects
+        .values('vehicule_id',
+                'vehicule__matricule',
+                'vehicule__marque',
+                'vehicule__modele')
+        .annotate(
+            cout_maintenance=Sum('cout_total')
+        )
+    )
+
+    for row in maintenance_agg:
+        veh_id = row['vehicule_id']
+        cout_maintenance = row['cout_maintenance'] or 0
+
+        if veh_id in tco_data:
+            tco_data[veh_id]['cout_maintenance'] = cout_maintenance
         else:
-            # Cas où un véhicule n'a que des coûts de maintenance (rare mais possible)
-            tco_data[matricule] = {
-                'vehicule__matricule': matricule,
-                'vehicule__marque': item['vehicule__marque'],
-                'vehicule__modele': item['vehicule__modele'],
+            # Véhicule qui n'a que de la maintenance et pas (encore) de carburant
+            tco_data[veh_id] = {
+                'vehicule__matricule': row['vehicule__matricule'],
+                'vehicule__marque': row['vehicule__marque'],
+                'vehicule__modele': row['vehicule__modele'],
                 'cout_carburant': 0,
-                'cout_maintenance': item['cout_maintenance'] or 0,
-                'tco_total': item['cout_maintenance'] or 0,
+                'cout_maintenance': cout_maintenance,
+                'km_total': 0,
             }
 
+    # --------------------------------
+    # 3) Calcul du TCO et du coût / km
+    # --------------------------------
+    lignes = []
+
+    for veh_id, data in tco_data.items():
+        cout_carburant = data['cout_carburant'] or 0
+        cout_maintenance = data['cout_maintenance'] or 0
+        km_total = data['km_total'] or 0
+
+        tco_total = cout_carburant + cout_maintenance
+
+        if km_total > 0:
+            cout_par_km = tco_total / km_total
+        else:
+            cout_par_km = None
+
+        lignes.append({
+            'vehicule__matricule': data['vehicule__matricule'],
+            'vehicule__marque': data['vehicule__marque'],
+            'vehicule__modele': data['vehicule__modele'],
+            'cout_carburant': cout_carburant,
+            'cout_maintenance': cout_maintenance,
+            'km_total': km_total,
+            'cout_par_km': cout_par_km,
+            'tco_total': tco_total,
+        })
+
+    # Tri par matricule pour un affichage propre
+    lignes = sorted(lignes, key=lambda x: x['vehicule__matricule'])
+
     context = {
-        'tco_rapport': tco_data.values(),
-        'title': 'Rapport TCO',
+        'title': 'Rapport de Coûts par Véhicule',
+        'lignes': lignes,
     }
     return render(request, 'rapports/rapports_tco.html', context)
 
@@ -447,3 +511,96 @@ def export_anomalies_csv(request):
         ])
 
     return response
+
+@role_required('Gestionnaire Flotte')
+def rapports_anomalies(request):
+    """
+    Rapport d'Anomalies :
+    - Surconsommation carburant (calcul entre deux pleins)
+    - Incidents déclarés (table Anomalie)
+    """
+
+    # -----------------------------
+    # 1) Détection surconsommation
+    # -----------------------------
+
+    # Seuils simples par type de carburant (tu pourras ajuster facilement)
+    SEUILS_CONSO = {
+        'diesel': 10.0,   # L/100 km
+        'gasoil': 10.0,
+        'essence': 13.0,
+        'super': 13.0,
+        'default': 12.0,
+    }
+
+    surconsommations = []
+
+    # On récupère tous les pleins, groupés par véhicule puis triés par date + kilométrage
+    ravitaillements = (
+        Ravitaillement.objects
+        .select_related('vehicule')
+        .order_by('vehicule_id', 'date_plein', 'kilometrage')
+    )
+
+    current_veh_id = None
+    prev_rav = None
+
+    for r in ravitaillements:
+        if r.kilometrage is None or r.quantite_litres is None:
+            # Si on n'a pas de km ou de litres, on ne peut pas calculer
+            continue
+
+        if current_veh_id != r.vehicule_id:
+            # Nouveau véhicule, on remet à zéro la séquence
+            current_veh_id = r.vehicule_id
+            prev_rav = r
+            continue
+
+        # Même véhicule, on peut comparer avec le plein précédent
+        distance = r.kilometrage - (prev_rav.kilometrage or 0)
+
+        if distance > 0 and r.quantite_litres > 0:
+            # Consommation (L/100 km) entre prev_rav et r
+            conso_l_100 = float(r.quantite_litres) / float(distance) * 100.0
+
+            type_carb = (r.vehicule.type_carburant or '').lower()
+            seuil = SEUILS_CONSO.get(type_carb, SEUILS_CONSO['default'])
+
+            if conso_l_100 > seuil:
+                surconsommations.append({
+                    'vehicule': r.vehicule,
+                    'date_debut': prev_rav.date_plein,
+                    'date_fin': r.date_plein,
+                    'km_debut': prev_rav.kilometrage,
+                    'km_fin': r.kilometrage,
+                    'distance': distance,
+                    'litres': float(r.quantite_litres),
+                    'conso_calculee': conso_l_100,
+                    'seuil': seuil,
+                })
+
+        # On avance le pointeur
+        prev_rav = r
+
+    # On trie les surconsommations les plus récentes en premier
+    surconsommations = sorted(
+        surconsommations,
+        key=lambda x: (x['vehicule'].matricule, x['date_fin'] or x['date_debut']),
+        reverse=True
+    )
+
+    # -----------------------------
+    # 2) Incidents/anomalies déclarés
+    # -----------------------------
+    incidents = (
+        Anomalie.objects
+        .select_related('vehicule', 'conducteur')
+        .order_by('-date_declaration')
+    )
+
+    context = {
+        'title': "Rapport d'Anomalies",
+        'surconsommations': surconsommations,
+        'incidents': incidents,
+    }
+    return render(request, 'rapports/rapports_anomalies.html', context)

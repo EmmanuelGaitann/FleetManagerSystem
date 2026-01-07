@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Mes anomalies{% endblock %}
+{% block page_title %}Mes anomalies{% endblock %}
+
+{% block content %}
+
+{% if not conducteur %}
+<div class="alert alert-warning">
+    Aucun profil <strong>conducteur</strong> n'est associé à votre compte.
+    Merci de contacter le gestionnaire de flotte.
+</div>
+{% else %}
+
+{% if message_error %}
+<div class="alert alert-danger">
+    {{ message_error }}
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Colonne véhicule affecté + déclaration rapide -->
+    <div class="col-md-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                Mon véhicule actuellement affecté
+            </div>
+            <div class="card-body">
+                {% if affectation_actuelle %}
+                <h5>{{ affectation_actuelle.vehicule.matricule }}</h5>
+                <p>
+                    {{ affectation_actuelle.vehicule.marque }}
+                    {{ affectation_actuelle.vehicule.modele }}
+                </p>
+                <p>
+                    <strong>Depuis :</strong>
+                    {{ affectation_actuelle.date_debut|date:"d/m/Y" }}
+                </p>
+
+                <hr>
+
+                <h6>Déclarer une nouvelle anomalie</h6>
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label class="form-label">Type d'anomalie (optionnel)</label>
+                        <select name="type_anomalie" class="form-select">
+                            <option value="">— Sélectionner —</option>
+                            <option value="Mécanique">Mécanique</option>
+                            <option value="Accident">Accident</option>
+                            <option value="Pneu / Roue">Pneu / Roue</option>
+                            <option value="Électrique">Électrique</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Description de l'anomalie</label>
+                        <textarea name="description" class="form-control" rows="4"
+                                  placeholder="Décrivez le problème rencontré..."></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Photo (chemin ou lien - optionnel)</label>
+                        <input type="text" name="photo_path" class="form-control"
+                               placeholder="Ex: chemin réseau, URL interne, etc.">
+                    </div>
+                    <button type="submit" class="btn btn-danger mt-2">
+                        <i class="fas fa-triangle-exclamation me-1"></i>
+                        Déclarer l'anomalie
+                    </button>
+                </form>
+
+                {% else %}
+                <p class="text-muted">
+                    Aucun véhicule ne vous est actuellement affecté.
+                    Vous ne pouvez pas déclarer d'anomalie pour le moment.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Colonne historique anomalies -->
+    <div class="col-md-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white">
+                Historique de mes anomalies
+            </div>
+            <div class="card-body">
+                {% if anomalies %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Véhicule</th>
+                            <th>Type</th>
+                            <th>Statut</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for a in anomalies %}
+                        <tr>
+                            <td>
+                                {% if a.date_declaration %}
+                                {{ a.date_declaration|date:"d/m/Y H:i" }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td>{{ a.vehicule.matricule }}</td>
+                            <td>{{ a.type_anomalie|default:"—" }}</td>
+                            <td>
+                                {% if a.statut %}
+                                {{ a.statut }}
+                                {% else %}
+                                Signalé
+                                {% endif %}
+                            </td>
+                            <td style="max-width: 260px;">
+                                {{ a.description|truncatewords:20 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">
+                    Vous n'avez encore déclaré aucune anomalie.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Plan d'entretien & rappels{% endblock %}
+{% block page_title %}Plan d'entretien & rappels{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col">
+        <p class="text-muted">
+            Ce tableau présente les prochains entretiens à réaliser, soit par <strong>date</strong>,
+            soit par <strong>kilométrage</strong>, à partir des derniers entretiens enregistrés
+            et des plans d'entretien (EntretienMaitre).
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Bloc par DATE -->
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                Prochains entretiens (basés sur la date)
+            </div>
+            <div class="card-body">
+                {% if lignes_date %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                        <tr>
+                            <th>Véhicule</th>
+                            <th>Plan</th>
+                            <th>Dernier entretien</th>
+                            <th>Prochaine date</th>
+                            <th>Jours restants</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for l in lignes_date %}
+                        <tr class="{% if l.en_retard %}table-danger{% endif %}">
+                            <td>
+                                {{ l.vehicule.matricule }}<br>
+                                <small class="text-muted">
+                                    {{ l.vehicule.marque }} {{ l.vehicule.modele }}
+                                </small>
+                            </td>
+                            <td>{{ l.plan.description }}</td>
+                            <td>
+                                {{ l.dernier_entretien.date_entretien|date:"d/m/Y" }}<br>
+                                <small class="text-muted">
+                                    {{ l.dernier_entretien.kilometrage }} km
+                                </small>
+                            </td>
+                            <td>
+                                {{ l.prochaine_date|date:"d/m/Y" }}
+                            </td>
+                            <td>
+                                {% if l.jours_restants < 0 %}
+                                <span class="text-danger">
+                                                    En retard ({{ l.jours_restants }} j)
+                                                </span>
+                                {% else %}
+                                {{ l.jours_restants }} j
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">
+                    Aucun rappel par date n'est à afficher pour le moment.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloc par KILOMÉTRAGE -->
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white">
+                Prochains entretiens (basés sur le kilométrage)
+            </div>
+            <div class="card-body">
+                {% if lignes_km %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                        <tr>
+                            <th>Véhicule</th>
+                            <th>Plan</th>
+                            <th>Dernier entretien</th>
+                            <th>Prochain km</th>
+                            <th>Km restants</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for l in lignes_km %}
+                        <tr class="{% if l.en_retard %}table-danger{% endif %}">
+                            <td>
+                                {{ l.vehicule.matricule }}<br>
+                                <small class="text-muted">
+                                    {{ l.vehicule.marque }} {{ l.vehicule.modele }}
+                                </small>
+                            </td>
+                            <td>{{ l.plan.description }}</td>
+                            <td>
+                                {{ l.dernier_entretien.date_entretien|date:"d/m/Y" }}<br>
+                                <small class="text-muted">
+                                    {{ l.dernier_entretien.kilometrage }} km
+                                </small>
+                            </td>
+                            <td>{{ l.prochain_km }} km</td>
+                            <td>
+                                {% if l.km_restants < 0 %}
+                                <span class="text-danger">
+                                                    En retard ({{ l.km_restants }} km)
+                                                </span>
+                                {% else %}
+                                {{ l.km_restants }} km
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">
+                    Aucun rappel par kilométrage n'est à afficher pour le moment.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

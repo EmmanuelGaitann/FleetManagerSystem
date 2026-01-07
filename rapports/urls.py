@@ -8,6 +8,7 @@ urlpatterns = [
     path('tco/', views.rapports_tco, name='rapports_tco'),
     path('performance-carburant/', views.rapports_performance, name='rapports_performance'),
     # Alertes
+    path('anomalies/', views.rapports_anomalies, name='rapports_anomalies'),
     path('alertes-actives/', views.alerte_list, name='alerte_list'),
     # Simulation de trajet (Module 5)
     path('simulation-trajet/', views.simulation_trajet, name='simulation_trajet'),

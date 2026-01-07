@@ -408,3 +408,59 @@ class VisiteTechniqueDeleteView(generic.DeleteView):
     template_name = 'flotte/visite_confirm_delete.html'
     success_url = reverse_lazy('visite_list')
 visite_delete = role_required('Gestionnaire Flotte')(VisiteTechniqueDeleteView.as_view())
+
+
+@login_required
+def mes_affectations(request):
+    """
+    Espace chauffeur :
+    - Affiche le véhicule actuellement affecté au chauffeur connecté
+    - Affiche l'historique de ses affectations
+    """
+
+    # On suppose que "conducteur" == personne portant le même nom/prénom/email que le compte
+    utilisateur = request.user
+
+    # Il faut retrouver le conducteur lié à ce compte
+    from flotte.models import Conducteur, Affectation
+
+    conducteur = Conducteur.objects.filter(
+        email=utilisateur.email
+    ).first()
+
+    if not conducteur:
+        # Cas rare : compte sans fiche conducteur associée
+        return render(request, "flotte/mes_affectations.html", {
+            "pas_de_conducteur": True
+        })
+
+    today = timezone.now().date()
+
+    # Affectation en cours
+    affectation_actuelle = Affectation.objects.filter(
+        conducteur=conducteur,
+        date_debut__lte=today,
+        # pas de date de fin OU fin future
+        # (donc l'affectation est encore active)
+        # ================================
+        date_fin__isnull=True
+    ).order_by("-date_debut").first()
+
+    if not affectation_actuelle:
+        affectation_actuelle = Affectation.objects.filter(
+            conducteur=conducteur,
+            date_debut__lte=today,
+            date_fin__gte=today
+        ).order_by("-date_debut").first()
+
+    # Historique complet
+    historique = Affectation.objects.filter(
+        conducteur=conducteur
+    ).order_by("-date_debut")
+
+    context = {
+        "conducteur": conducteur,
+        "affectation_actuelle": affectation_actuelle,
+        "historique": historique,
+    }
+    return render(request, "flotte/mes_affectations.html", context)

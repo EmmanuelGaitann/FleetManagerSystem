@@ -153,7 +153,7 @@
             <!-- Liens communs à tous les utilisateurs connectés -->
             <a href="{% url 'dashboard' %}"
                class="list-group-item-menu {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="fas fa-chart-line"></i> Tableau de bord
+                <i class="fas fa-home"></i> Tableau de bord
             </a>
 
             <a href="{% url 'alertes_echeances' %}"
@@ -230,6 +230,10 @@
                    class="{% if 'anomalie' in request.path %}active{% endif %}">
                     Anomalies
                 </a>
+                <a href="{% url 'plan_entretien' %}"
+                   class="list-group-item-menu {% if request.resolver_match.url_name == 'plan_entretien' %}active{% endif %}">
+                     Plan d'entretien & rappels
+                </a>
             </div>
 
             <!-- Carburant -->
@@ -267,34 +271,34 @@
             </div>
 
             <!-- Rapports & Statistiques -->
-            <a class="list-group-item-menu {% if request.resolver_match.url_name == 'rapports_tco' or request.resolver_match.url_name == 'rapports_performance' %}active{% endif %}"
+            <a class="list-group-item-menu {% if request.resolver_match.url_name == 'rapports_tco' or request.resolver_match.url_name == 'rapports_performance' or request.resolver_match.url_name == 'rapports_utilisation' or request.resolver_match.url_name == 'rapports_anomalies' or request.resolver_match.url_name == 'alertes_echeances'%}active{% endif %}"
                href="#reportSubMenu" data-bs-toggle="collapse">
                 <i class="fas fa-chart-pie"></i> Rapports & Statistiques
                 <i class="fas fa-chevron-down ms-auto"></i>
             </a>
 
             <div id="reportSubMenu" class="collapse collapse-sub-menu show">
-                <a href="{% url 'rapports_tco' %}">
-                    Coûts & TCO
+                <a href="{% url 'rapports_tco' %}" class="{% if 'rapport_tco' in request.path %}active{% endif %}">
+                    Rapport Coûts par Véhicule
                 </a>
 
-                <a href="{% url 'rapports_performance' %}">
+                <a href="{% url 'rapports_performance' %}" class="{% if 'rapports_performance' in request.path %}active{% endif %}">
                     Performance flotte
                 </a>
 
-                <a href="{% url 'rapports_utilisation' %}">
+                <a href="{% url 'rapports_utilisation' %}" class="{% if 'rapports_utilisation' in request.path %}active{% endif %}">
                     Utilisation (km/mois)
                 </a>
 
-                <a href="{% url 'rapports_anomalies' %}">
+                <a href="{% url 'rapports_anomalies' %}" class="">
                     Rapport d’anomalies
                 </a>
 
-                <a href="{% url 'alertes_echeances' %}">
+                <a href="{% url 'alertes_echeances' %}" class="{% if 'alertes_echeances' in request.path %}active{% endif %}">
                     Alertes d’échéances
                 </a>
 
-                <a href="{% url 'simulation_trajet' %}">
+                <a href="{% url 'simulation_trajet' %}" class="{% if 'simulation_trajet' in request.path %}active{% endif %}">
                     Simulation de trajet
                 </a>
             </div>
@@ -320,9 +324,14 @@
             {% if user.role.nom == 'Chauffeur/Opérateur' and not user.is_superuser and user.role.nom != 'Gestionnaire Flotte' %}
             <div class="text-light small mt-3 mb-2">Espace opérateur</div>
 
-            <a href="{% url 'anomalie_list' %}"
-               class="list-group-item-menu {% if request.resolver_match.url_name == 'anomalie_list' %}active{% endif %}">
-                <i class="fas fa-exclamation-triangle"></i> Mes anomalies
+
+                <a class="list-group-item-menu" href="{% url 'mes_anomalies' %}">
+                    <i class="fas fa-triangle-exclamation me-2"></i> Mes anomalies
+                </a>
+
+
+            <a class="list-group-item-menu" href="{% url 'mes_affectations' %}">
+                <i class="fas fa-car me-2"></i> Mon véhicule / Mes affectations
             </a>
 
             <a href="{% url 'anomalie_create' %}"

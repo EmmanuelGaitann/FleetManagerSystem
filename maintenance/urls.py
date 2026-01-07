@@ -16,4 +16,6 @@ urlpatterns = [
     path('anomalies/details/<int:pk>/', views.anomalie_detail, name='anomalie_detail'),
     path('anomalies/modifier/<int:pk>/', views.anomalie_update, name='anomalie_update'),
     path('anomalies/supprimer/<int:pk>/', views.anomalie_delete, name='anomalie_delete'),
+    path('mes-anomalies/', views.mes_anomalies, name='mes_anomalies'),
+    path('plan-entretien/', views.plan_entretien, name='plan_entretien'),
 ]

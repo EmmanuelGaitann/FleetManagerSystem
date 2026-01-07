@@ -1,61 +1,137 @@
 {% extends "base.html" %}
 
-{% block title %}Rapport d’anomalies{% endblock %}
-{% block page_title %}Rapport d’anomalies{% endblock %}
+{% block title %}Rapport d'Anomalies{% endblock %}
+{% block page_title %}Rapport d'Anomalies (Surconsommation & Incidents){% endblock %}
 
 {% block content %}
+
 <div class="row mb-4">
     <div class="col">
         <h4 class="text-danger">
             <i class="fas fa-triangle-exclamation me-2"></i>
-            Anomalies et incidents
+            Surconsommation & Incidents
         </h4>
         <p class="text-muted">
-            Liste des anomalies déclarées (pannes, accidents, autres).
+            Ce rapport regroupe les anomalies de consommation de carburant et les incidents déclarés
+            sur les véhicules de la flotte.
         </p>
     </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="mb-3 text-end">
-            <a href="{% url 'export_anomalies_csv' %}" class="btn btn-sm btn-outline-secondary">
-                Exporter en Excel / CSV
-            </a>
+<div class="row">
+    <!-- Bloc Surconsommation -->
+    <div class="col-md-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning">
+                <strong>Surconsommations détectées (Carburant)</strong>
+            </div>
+            <div class="card-body">
+                {% if surconsommations %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th>Véhicule</th>
+                            <th>Période</th>
+                            <th>Km (début → fin)</th>
+                            <th class="text-end">Distance</th>
+                            <th class="text-end">Litres</th>
+                            <th class="text-end">Conso</th>
+                            <th class="text-end">Seuil</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for s in surconsommations %}
+                        <tr>
+                            <td>
+                                {{ s.vehicule.matricule }}<br>
+                                <small class="text-muted">
+                                    {{ s.vehicule.marque }} {{ s.vehicule.modele }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if s.date_debut %}{{ s.date_debut|date:"d/m/Y H:i" }}{% else %}?{% endif %}
+                                <br>
+                                {% if s.date_fin %}→ {{ s.date_fin|date:"d/m/Y H:i" }}{% endif %}
+                            </td>
+                            <td>
+                                {{ s.km_debut }} km → {{ s.km_fin }} km
+                            </td>
+                            <td class="text-end">
+                                {{ s.distance }} km
+                            </td>
+                            <td class="text-end">
+                                {{ s.litres|floatformat:1 }} L
+                            </td>
+                            <td class="text-end">
+                                <strong>{{ s.conso_calculee|floatformat:1 }}</strong> L/100km
+                            </td>
+                            <td class="text-end">
+                                {{ s.seuil|floatformat:1 }} L/100km
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">
+                    Aucune surconsommation détectée sur la base des pleins enregistrés.
+                </p>
+                {% endif %}
+            </div>
         </div>
+    </div>
 
-        <table class="table table-bordered table-hover table-sm">
-            <thead>
-            <tr>
-                <th>Véhicule</th>
-                <th>Conducteur</th>
-                <th>Type</th>
-                <th>Statut</th>
-                <th>Date déclaration</th>
-                <th>Description</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for a in anomalies %}
-            <tr>
-                <td>{{ a.vehicule.matricule }}</td>
-                <td>{{ a.conducteur.nom }} {{ a.conducteur.prenom }}</td>
-                <td>{{ a.type_anomalie }}</td>
-                <td>{{ a.statut }}</td>
-                <td>{{ a.date_declaration|date:"d/m/Y H:i" }}</td>
-                <td style="max-width: 300px;">
-                    <small>{{ a.description }}</small>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center text-muted">
-                    Aucune anomalie enregistrée.
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <!-- Bloc Incidents -->
+    <div class="col-md-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white">
+                <strong>Incidents & anomalies déclarés</strong>
+            </div>
+            <div class="card-body">
+                {% if incidents %}
+                <div class="table-responsive" style="max-height: 430px; overflow-y: auto;">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Véhicule</th>
+                            <th>Type</th>
+                            <th>Statut</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for a in incidents %}
+                        <tr>
+                            <td>
+                                {% if a.date_declaration %}
+                                {{ a.date_declaration|date:"d/m/Y H:i" }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td>{{ a.vehicule.matricule }}</td>
+                            <td>{{ a.type_anomalie|default:"—" }}</td>
+                            <td>{{ a.statut|default:"Signalé" }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="small text-muted">
+                                {{ a.description|truncatewords:20 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">
+                    Aucun incident n'a encore été déclaré.
+                </p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
+
 {% endblock %}

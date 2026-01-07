@@ -31,7 +31,6 @@ urlpatterns = [
     # 4. CRUD Conducteurs
     # --------------------------------------------------
     path('conducteurs/', views.conducteur_list, name='conducteur_list'),
-    path('conducteurs/ajouter/', views.conducteur_create, name='conducteur_create'),
     path('conducteurs/modifier/<int:pk>/', views.conducteur_update, name='conducteur_update'),
     path('conducteurs/supprimer/<int:pk>/', views.conducteur_delete, name='conducteur_delete'),
 
@@ -42,6 +41,7 @@ urlpatterns = [
     path('affectations/ajouter/', views.affectation_create, name='affectation_create'),
     path('affectations/modifier/<int:pk>/', views.affectation_update, name='affectation_update'),
     path('affectations/supprimer/<int:pk>/', views.affectation_delete, name='affectation_delete'),
+    path('mes-affectations/', views.mes_affectations, name='mes_affectations'),
 
     # --------------------------------------------------
     # 6. CRUD Rappels : Assurances (NOUVEAU)
@@ -66,4 +66,5 @@ urlpatterns = [
     path('visites/ajouter/', views.visite_create, name='visite_create'),
     path('visites/modifier/<int:pk>/', views.visite_update, name='visite_update'),
     path('visites/supprimer/<int:pk>/', views.visite_delete, name='visite_delete'),
+
 ]
