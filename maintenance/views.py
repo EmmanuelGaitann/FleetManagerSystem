@@ -8,6 +8,7 @@ from .models import Entretien, DetailDepense, Anomalie
 from .forms import EntretienForm, DetailDepenseFormSet, AnomalieForm
 from django.utils import timezone
 
+
 # -----------------------------------------------------------
 # Vues CRUD du Module Entretien (Avec Formset)
 # -----------------------------------------------------------

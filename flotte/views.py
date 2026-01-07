@@ -18,26 +18,33 @@ from .forms import DepartementForm, VehiculeForm, ConducteurForm, AffectationFor
 
 def role_required(*allowed_roles):
     """
-    Décorateur personnalisé pour limiter l'accès à une vue à un rôle spécifique.
-    Le Superuser a accès à toutes les vues.
+    Décorateur personnalisé pour limiter l'accès à une vue à un ou plusieurs rôles.
+    Exemple d'usage :
+        @role_required('Gestionnaire Flotte')
+        @role_required('Gestionnaire Flotte', 'Administrateur Système')
+    Le superuser a toujours accès.
     """
     def decorator(view_func):
         @login_required
         def wrapper(request, *args, **kwargs):
-            # 1. Le Superuser a toujours accès
+            # 1. Le superuser a toujours accès
             if request.user.is_superuser:
                 return view_func(request, *args, **kwargs)
 
-            # 2. Vérification du rôle de l'utilisateur
-            user_role_name = request.user.role.nom if hasattr(request.user, 'role') and request.user.role else None
+            # 2. Récupération du nom de rôle de l'utilisateur (peut être None)
+            user_role_obj = getattr(request.user, 'role', None)
+            user_role_name = getattr(user_role_obj, 'nom', None)
 
-            if user_role_name == role_name:
+            # 3. Si le rôle de l'utilisateur fait partie des rôles autorisés → OK
+            if user_role_name in allowed_roles:
                 return view_func(request, *args, **kwargs)
-            else:
-                # 3. Redirection si le rôle ne correspond pas
-                return redirect('dashboard')
+
+            # 4. Sinon, on le renvoie gentiment au dashboard
+            return redirect('dashboard')
+
         return wrapper
     return decorator
+
 
 
 # -----------------------------------------------------------
